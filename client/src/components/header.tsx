@@ -9,24 +9,29 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
-            <Link href="/" className="flex items-center space-x-2">
-              <Box className="text-primary text-2xl" />
-              <span className="text-xl font-bold text-neutral">X402 Protocol</span>
+            <Link href="/" className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">區</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-neutral">區塊勢 for AI</span>
+                <span className="text-xs text-gray-500">說鬼話的區塊鏈內容</span>
+              </div>
             </Link>
           </div>
           
           <nav className="hidden md:flex items-center space-x-8">
             <Link href="/" className="text-gray-600 hover:text-neutral transition-colors">
-              Articles
+              文章
             </Link>
             <a href="#" className="text-gray-600 hover:text-neutral transition-colors">
-              AI Agents
+              AI 代理
             </a>
             <a href="#" className="text-gray-600 hover:text-neutral transition-colors">
-              Protocol
+              協議說明
             </a>
             <a href="#" className="text-gray-600 hover:text-neutral transition-colors">
-              Docs
+              文檔
             </a>
           </nav>
 

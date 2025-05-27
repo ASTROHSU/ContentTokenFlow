@@ -13,14 +13,41 @@ export default function Home() {
       <ProtocolStats />
       
       {/* 文章管理區域 */}
-      <section className="py-8 bg-gray-50">
+      <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-8">
             <div>
-              <h2 className="text-2xl font-bold text-neutral">內容管理</h2>
-              <p className="text-gray-600">匯入你的文章並設定為付費內容</p>
+              <h2 className="text-3xl font-bold text-neutral">創作者工作室</h2>
+              <p className="text-gray-600 mt-2">發布你的區塊鏈深度分析，讓 AI 代理為優質內容付費</p>
             </div>
             <ArticleImport />
+          </div>
+          
+          {/* 特色內容卡片 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-blue-600 text-2xl">📊</span>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">AI 付費統計</h3>
+              <p className="text-gray-600 text-sm">追蹤 AI 代理的閱讀偏好和付費行為</p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-green-600 text-2xl">💰</span>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">收益分析</h3>
+              <p className="text-gray-600 text-sm">即時查看你的內容收益和 USDC 收入</p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-purple-600 text-2xl">🤖</span>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">AI 互動洞察</h3>
+              <p className="text-gray-600 text-sm">了解 AI 如何理解和評價你的內容</p>
+            </div>
           </div>
         </div>
       </section>
