@@ -1,4 +1,6 @@
 import { users, articles, payments, agentActivity, protocolStats, type User, type InsertUser, type Article, type InsertArticle, type Payment, type InsertPayment, type AgentActivity, type InsertAgentActivity, type ProtocolStats } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -259,4 +261,151 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage Implementation
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async getUserByWallet(walletAddress: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.walletAddress, walletAddress));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async updateUserBalance(walletAddress: string, balance: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ balance })
+      .where(eq(users.walletAddress, walletAddress));
+  }
+
+  async getArticles(): Promise<Article[]> {
+    return await db.select().from(articles);
+  }
+
+  async getArticle(id: number): Promise<Article | undefined> {
+    const [article] = await db.select().from(articles).where(eq(articles.id, id));
+    return article || undefined;
+  }
+
+  async createArticle(insertArticle: InsertArticle): Promise<Article> {
+    const [article] = await db
+      .insert(articles)
+      .values(insertArticle)
+      .returning();
+    return article;
+  }
+
+  async checkArticleAccess(articleId: number, walletAddress?: string): Promise<boolean> {
+    if (!walletAddress) return false;
+    
+    const [payment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.articleId, articleId))
+      .where(eq(payments.walletAddress, walletAddress))
+      .where(eq(payments.status, 'completed'));
+    
+    return !!payment;
+  }
+
+  async createPayment(insertPayment: InsertPayment): Promise<Payment> {
+    const [payment] = await db
+      .insert(payments)
+      .values(insertPayment)
+      .returning();
+    return payment;
+  }
+
+  async getPaymentsByWallet(walletAddress: string): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.walletAddress, walletAddress));
+  }
+
+  async updatePaymentStatus(id: number, status: string, txHash?: string): Promise<void> {
+    await db
+      .update(payments)
+      .set({ status, txHash })
+      .where(eq(payments.id, id));
+  }
+
+  async getAgentActivity(limit: number = 10): Promise<AgentActivity[]> {
+    return await db
+      .select()
+      .from(agentActivity)
+      .orderBy(agentActivity.createdAt)
+      .limit(limit);
+  }
+
+  async createAgentActivity(insertActivity: InsertAgentActivity): Promise<AgentActivity> {
+    const [activity] = await db
+      .insert(agentActivity)
+      .values(insertActivity)
+      .returning();
+    return activity;
+  }
+
+  async getProtocolStats(): Promise<ProtocolStats> {
+    const [stats] = await db.select().from(protocolStats);
+    if (!stats) {
+      // Initialize stats if not exists
+      const [newStats] = await db
+        .insert(protocolStats)
+        .values({
+          totalPayments: 0,
+          totalUSDC: "0.000000",
+          activeAgents: 0,
+          totalArticles: 0
+        })
+        .returning();
+      return newStats;
+    }
+    return stats;
+  }
+
+  async updateProtocolStats(): Promise<void> {
+    // This would be called after payments or other activities
+    // For now, we'll keep it simple and update based on current data
+    const totalPaymentsResult = await db.select().from(payments);
+    const totalArticlesResult = await db.select().from(articles);
+    
+    const totalPayments = totalPaymentsResult.length;
+    const totalArticles = totalArticlesResult.length;
+    const totalUSDC = totalPaymentsResult
+      .filter(p => p.status === 'completed')
+      .reduce((sum, p) => sum + parseFloat(p.amount), 0)
+      .toFixed(6);
+
+    const [existingStats] = await db.select().from(protocolStats);
+    
+    if (existingStats) {
+      await db
+        .update(protocolStats)
+        .set({
+          totalPayments,
+          totalUSDC,
+          totalArticles,
+          activeAgents: 5 // Placeholder for now
+        })
+        .where(eq(protocolStats.id, existingStats.id));
+    }
+  }
+}
+
+export const storage = new DatabaseStorage();
