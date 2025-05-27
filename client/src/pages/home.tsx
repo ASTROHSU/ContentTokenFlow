@@ -3,6 +3,7 @@ import { HeroSection } from '@/components/hero-section';
 import { ProtocolStats } from '@/components/protocol-stats';
 import { ContentGrid } from '@/components/content-grid';
 import { AIAgentSimulator } from '@/components/ai-agent-simulator';
+import { ArticleImport } from '@/components/article-import';
 
 export default function Home() {
   return (
@@ -10,6 +11,20 @@ export default function Home() {
       <Header />
       <HeroSection />
       <ProtocolStats />
+      
+      {/* 文章管理區域 */}
+      <section className="py-8 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-neutral">內容管理</h2>
+              <p className="text-gray-600">匯入你的文章並設定為付費內容</p>
+            </div>
+            <ArticleImport />
+          </div>
+        </div>
+      </section>
+      
       <ContentGrid />
       <AIAgentSimulator />
       
