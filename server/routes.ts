@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPaymentSchema, insertAgentActivitySchema } from "@shared/schema";
+import { insertPaymentSchema, insertAgentActivitySchema, insertArticleSchema } from "@shared/schema";
 import { z } from "zod";
 
 const connectWalletSchema = z.object({
@@ -24,6 +24,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(articles);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch articles" });
+    }
+  });
+
+  // Create new article
+  app.post("/api/articles", async (req, res) => {
+    try {
+      const articleData = insertArticleSchema.parse(req.body);
+      const article = await storage.createArticle(articleData);
+      await storage.updateProtocolStats();
+      res.json(article);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid article data" });
     }
   });
 
