@@ -56,14 +56,14 @@ export function AIAgentSimulator() {
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-neutral mb-4">Live AI Agent Activity</h2>
-          <p className="text-gray-600">Watch autonomous agents discover and purchase content in real-time</p>
+          <h2 className="text-3xl font-bold text-neutral mb-4">AI 代理即時活動</h2>
+          <p className="text-gray-600">觀看自主代理即時發現並購買內容的過程</p>
         </div>
 
         <Card className="bg-neutral text-green-400 font-mono text-sm mb-8">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-semibold">X402 Protocol Terminal</h3>
+              <h3 className="text-white font-semibold">區塊勢 AI 協議終端</h3>
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                 <Badge variant="outline" className="text-green-400 border-green-400">
