@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { WalletConnectProvider } from "@/components/walletconnect-provider";
 import Home from "@/pages/home";
 import Article from "@/pages/article";
+import Dashboard from "@/pages/dashboard";
+import Creator from "@/pages/creator";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -13,6 +15,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/article/:id" component={Article} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/creator" component={Creator} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -24,15 +24,12 @@ export function Header() {
             <Link href="/" className="text-gray-600 hover:text-neutral transition-colors">
               文章
             </Link>
-            <a href="#" className="text-gray-600 hover:text-neutral transition-colors">
-              AI 代理
-            </a>
-            <a href="#" className="text-gray-600 hover:text-neutral transition-colors">
-              協議說明
-            </a>
-            <a href="#" className="text-gray-600 hover:text-neutral transition-colors">
-              文檔
-            </a>
+            <Link href="/dashboard" className="text-gray-600 hover:text-neutral transition-colors">
+              儀表板
+            </Link>
+            <Link href="/creator" className="text-gray-600 hover:text-neutral transition-colors">
+              創作者
+            </Link>
           </nav>
 
           <div className="flex items-center space-x-4">
