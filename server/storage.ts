@@ -1,6 +1,6 @@
 import { users, articles, payments, agentActivity, protocolStats, type User, type InsertUser, type Article, type InsertArticle, type Payment, type InsertPayment, type AgentActivity, type InsertAgentActivity, type ProtocolStats } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -289,7 +289,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserBalance(walletAddress: string, balance: string): Promise<void> {
     await db
       .update(users)
-      .set({ balance })
+      .set({ usdcBalance: balance })
       .where(eq(users.walletAddress, walletAddress));
   }
 
@@ -316,9 +316,11 @@ export class DatabaseStorage implements IStorage {
     const [payment] = await db
       .select()
       .from(payments)
-      .where(eq(payments.articleId, articleId))
-      .where(eq(payments.walletAddress, walletAddress))
-      .where(eq(payments.status, 'completed'));
+      .where(and(
+        eq(payments.articleId, articleId),
+        eq(payments.walletAddress, walletAddress),
+        eq(payments.status, 'completed')
+      ));
     
     return !!payment;
   }
