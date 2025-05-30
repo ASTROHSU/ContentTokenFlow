@@ -42,14 +42,24 @@ export default function Article() {
       isConnected: wallet.isConnected, 
       isAuthenticated, 
       authLoading, 
-      needsAuth 
+      needsAuth,
+      walletAddress: wallet.address,
+      authAddress: authStatus?.address
     });
     
-    if (wallet.isConnected && !isAuthenticated && !authLoading) {
+    // Check if we need authentication:
+    // 1. Wallet is connected but not authenticated, OR
+    // 2. Wallet is connected and authenticated but addresses don't match
+    const needsNewAuth = wallet.isConnected && (
+      !isAuthenticated || 
+      (isAuthenticated && authStatus?.address?.toLowerCase() !== wallet.address?.toLowerCase())
+    );
+    
+    if (needsNewAuth && !authLoading) {
       console.log('Triggering authentication...');
       setNeedsAuth(true);
     }
-  }, [wallet.isConnected, isAuthenticated, authLoading]);
+  }, [wallet.isConnected, wallet.address, isAuthenticated, authLoading, authStatus]);
 
   // Reset auth state when authentication completes
   useEffect(() => {
