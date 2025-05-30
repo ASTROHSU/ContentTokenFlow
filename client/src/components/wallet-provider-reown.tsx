@@ -32,7 +32,7 @@ export function ReownWalletProvider({ children }: { children: ReactNode }) {
   const { disconnect } = useDisconnect();
   const { data: balance } = useBalance({
     address: address,
-    token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base Sepolia
+    token: '0x036CbD53842c5426634e7929541eC2318f3dCF7e', // USDC on Base Sepolia
   });
 
   const connectWallet = async () => {
