@@ -1,10 +1,14 @@
 import { Box } from 'lucide-react';
 import { Link } from 'wouter';
 import { WalletSelector } from './wallet-selector';
-import { useAuth } from '@/hooks/use-auth';
+import { useReownWallet } from './wallet-provider-reown';
 
 export function Header() {
-  const { isAuthenticated } = useAuth();
+  const { wallet } = useReownWallet();
+  
+  // Check if connected wallet is the authorized creator
+  const isCreator = wallet.isConnected && 
+    wallet.address?.toLowerCase() === '0x36F322fC85B24aB13263CFE9217B28f8E2b38381'.toLowerCase();
 
   return (
     <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
@@ -29,7 +33,7 @@ export function Header() {
             <Link href="/dashboard" className="text-gray-600 hover:text-neutral transition-colors">
               儀表板
             </Link>
-            {isAuthenticated && (
+            {isCreator && (
               <Link href="/creator" className="text-gray-600 hover:text-neutral transition-colors">
                 創作者
               </Link>
