@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Coins, Unlock } from 'lucide-react';
 import { formatUSDC } from '@/lib/web3';
-import { useState } from 'react';
-import { PaymentModal } from './payment-modal';
 
 interface Article {
   id: number;
@@ -19,16 +17,14 @@ interface Article {
 }
 
 export function ContentGrid() {
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const { data: articles, isLoading } = useQuery<Article[]>({
     queryKey: ['/api/articles'],
   });
 
   const handleUnlock = (article: Article) => {
-    setSelectedArticle(article);
-    setShowPaymentModal(true);
+    // Navigate to article page which will handle authentication first
+    window.location.href = `/article/${article.id}`;
   };
 
   if (isLoading) {
@@ -138,17 +134,6 @@ export function ContentGrid() {
           </div>
         </div>
       </section>
-
-      {selectedArticle && (
-        <PaymentModal
-          article={selectedArticle}
-          isOpen={showPaymentModal}
-          onClose={() => {
-            setShowPaymentModal(false);
-            setSelectedArticle(null);
-          }}
-        />
-      )}
     </>
   );
 }
