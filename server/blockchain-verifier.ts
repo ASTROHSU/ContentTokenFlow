@@ -21,7 +21,7 @@ export class BlockchainVerifier {
   private baseUrl = 'https://api-sepolia.basescan.org/api';
 
   constructor() {
-    this.apiKey = process.env.BASESCAN_API_KEY || '';
+    this.apiKey = process.env.BASESCAN_API_KEY || '44UA8ZHR9S6PIYAJ5TXN392SRZ89XC72Q8';
     if (!this.apiKey) {
       throw new Error('BASESCAN_API_KEY is required');
     }

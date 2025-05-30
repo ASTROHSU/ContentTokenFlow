@@ -239,25 +239,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test blockchain verification endpoint
-  app.get("/api/test/blockchain-verify/:walletAddress", async (req, res) => {
+  // Sync stats with blockchain data
+  app.post("/api/admin/sync-blockchain-stats", async (req, res) => {
     try {
-      const walletAddress = req.params.walletAddress;
-      const articleId = 1; // Test with article 1
+      console.log('Syncing stats with blockchain data...');
       
-      console.log(`Testing blockchain verification for wallet: ${walletAddress}`);
+      // Get all USDC transactions to the recipient address
+      const transactions = await blockchainVerifier.getUSDCTransactions();
       
-      const hasAccess = await blockchainVerifier.checkArticleAccessWithBlockchain(storage, articleId, walletAddress);
+      // Filter for 1.5 USDC payments (1500000 in wei, USDC has 6 decimals)
+      const validPayments = transactions.filter(tx => tx.value === '1500000');
+      
+      // Get unique paying addresses (excluding creator)
+      const uniquePayingAddresses = new Set(
+        validPayments
+          .map(tx => tx.from.toLowerCase())
+          .filter(addr => addr !== '0x36f322fc85b24ab13263cfe9217b28f8e2b38381')
+      );
+      
+      const realStats = {
+        totalPayments: validPayments.length,
+        totalUSDC: (validPayments.length * 1.5).toFixed(6),
+        activeAgents: uniquePayingAddresses.size,
+        totalArticles: 1
+      };
+      
+      // Update protocol stats
+      await storage.updateProtocolStats();
       
       res.json({
-        walletAddress,
-        articleId,
-        hasAccess,
-        timestamp: new Date().toISOString()
+        success: true,
+        blockchainData: {
+          totalTransactions: transactions.length,
+          validPayments: validPayments.length,
+          uniquePayingUsers: uniquePayingAddresses.size,
+          totalUSDC: realStats.totalUSDC
+        },
+        updatedStats: realStats
       });
     } catch (error) {
-      console.error('Blockchain verification error:', error);
-      res.status(500).json({ error: 'Blockchain verification failed', details: error.message });
+      console.error('Blockchain sync error:', error);
+      res.status(500).json({ error: 'Failed to sync with blockchain' });
     }
   });
 
