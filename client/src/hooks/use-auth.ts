@@ -42,16 +42,23 @@ export function useAuth() {
 
         // Create SIWE message
         console.log('創建 SIWE 訊息...');
-        const message = new SiweMessage({
-          domain: window.location.host,
-          address: normalizedAddress,
-          statement: 'Sign in to access premium content',
-          uri: window.location.origin,
-          version: '1',
-          chainId: 84532, // Base Sepolia
-          nonce: Math.random().toString(36).substring(2, 15),
-          issuedAt: new Date().toISOString(),
-        });
+        let message: SiweMessage;
+        try {
+          message = new SiweMessage({
+            domain: window.location.host,
+            address: normalizedAddress,
+            statement: 'Sign in to access premium content',
+            uri: window.location.origin,
+            version: '1',
+            chainId: 84532, // Base Sepolia
+            nonce: Math.random().toString(36).substring(2, 15),
+            issuedAt: new Date().toISOString(),
+          });
+          console.log('SIWE 訊息物件創建成功');
+        } catch (siweError: any) {
+          console.error('SIWE 訊息創建失敗:', siweError);
+          throw new Error(`SIWE 訊息創建失敗: ${siweError?.message || String(siweError)}`);
+        }
 
         const messageString = message.prepareMessage();
         console.log('SIWE 訊息已創建:', messageString);
