@@ -43,6 +43,13 @@ export default function Article() {
     }
   }, [wallet.isConnected, isAuthenticated, authLoading, needsAuth]);
 
+  // Reset auth state when authentication completes
+  useEffect(() => {
+    if (isAuthenticated && needsAuth) {
+      setNeedsAuth(false);
+    }
+  }, [isAuthenticated, needsAuth]);
+
   const { data: article, isLoading, error } = useQuery<ArticleData>({
     queryKey: ['/api/articles', articleId],
     queryFn: async () => {
