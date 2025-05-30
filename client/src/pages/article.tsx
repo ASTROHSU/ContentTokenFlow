@@ -29,6 +29,7 @@ export default function Article() {
   const [, setLocation] = useLocation();
   const { wallet } = useReownWallet();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [unlockedArticle, setUnlockedArticle] = useState<ArticleData | null>(null);
   
   const articleId = params.id ? parseInt(params.id) : null;
 
@@ -52,6 +53,46 @@ export default function Article() {
     },
     enabled: !!articleId,
   });
+
+  // Check blockchain payment status
+  const { data: hasBlockchainAccess, isLoading: isCheckingPayment } = useQuery({
+    queryKey: ['/api/blockchain-access', articleId, wallet.address],
+    queryFn: async () => {
+      if (!wallet.address || !article) return false;
+      
+      const recipientAddress = '0x36F322fC85B24aB13263CFE9217B28f8E2b38381';
+      return await checkUSDCPayment(wallet.address, recipientAddress, article.price);
+    },
+    enabled: !!wallet.address && !!article && !unlockedArticle,
+  });
+
+  // Unlock article content if payment verified
+  const { data: fullArticle } = useQuery<ArticleData>({
+    queryKey: ['/api/articles', articleId, 'unlock'],
+    queryFn: async () => {
+      const response = await fetch(`/api/articles/${articleId}/unlock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress: wallet.address,
+          verificationResult: true,
+        }),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to unlock article');
+      }
+      
+      return response.json();
+    },
+    enabled: !!hasBlockchainAccess && !unlockedArticle,
+  });
+
+  // Update unlocked article when data is fetched
+  if (fullArticle && !unlockedArticle) {
+    setUnlockedArticle(fullArticle);
+  }
 
   if (isLoading) {
     return (
@@ -156,7 +197,8 @@ export default function Article() {
             </p>
           </div>
 
-          {article.hasAccess && article.content ? (
+          {/* Show content if unlocked via blockchain verification */}
+          {unlockedArticle && unlockedArticle.content ? (
             <Card>
               <CardContent className="p-8">
                 <div className="prose prose-lg max-w-none">
@@ -168,9 +210,16 @@ export default function Article() {
                       letterSpacing: '0.01em'
                     }}
                   >
-                    {article.content}
+                    {unlockedArticle.content}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          ) : isCheckingPayment ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-gray-600">正在檢查區塊鏈付款記錄...</p>
               </CardContent>
             </Card>
           ) : (
