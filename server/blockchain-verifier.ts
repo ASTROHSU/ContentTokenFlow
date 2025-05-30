@@ -100,7 +100,7 @@ export class BlockchainVerifier {
    * Enhanced article access check with blockchain verification
    */
   async checkArticleAccessWithBlockchain(
-    storage: Storage, 
+    storage: IStorage, 
     articleId: number, 
     walletAddress?: string
   ): Promise<boolean> {
@@ -113,7 +113,7 @@ export class BlockchainVerifier {
 
     // Get the payment record details
     const payments = await storage.getPaymentsByWallet(walletAddress);
-    const articlePayment = payments.find(p => 
+    const articlePayment = payments.find((p: any) => 
       p.articleId === articleId && p.status === 'completed'
     );
 

@@ -107,7 +107,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if user has paid for access or is the creator
       const isCreator = walletAddress?.toLowerCase() === '0x36F322fC85B24aB13263CFE9217B28f8E2b38381'.toLowerCase();
-      const hasAccess = isCreator || (walletAddress ? await storage.checkArticleAccess(id, walletAddress) : false);
+      let hasAccess = isCreator;
+      
+      // For non-creators, verify payment with blockchain
+      if (!isCreator && walletAddress) {
+        hasAccess = await blockchainVerifier.checkArticleAccessWithBlockchain(storage, id, walletAddress);
+      }
       
       if (!hasAccess) {
         // Return x402 Payment Required response with proper headers
@@ -231,6 +236,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ payment, status: "processing" });
     } catch (error) {
       res.status(400).json({ message: "Invalid payment data" });
+    }
+  });
+
+  // Test blockchain verification endpoint
+  app.get("/api/test/blockchain-verify/:walletAddress", async (req, res) => {
+    try {
+      const walletAddress = req.params.walletAddress;
+      const articleId = 1; // Test with article 1
+      
+      console.log(`Testing blockchain verification for wallet: ${walletAddress}`);
+      
+      const hasAccess = await blockchainVerifier.checkArticleAccessWithBlockchain(storage, articleId, walletAddress);
+      
+      res.json({
+        walletAddress,
+        articleId,
+        hasAccess,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Blockchain verification error:', error);
+      res.status(500).json({ error: 'Blockchain verification failed', details: error.message });
     }
   });
 
