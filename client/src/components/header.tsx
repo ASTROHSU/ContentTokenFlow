@@ -29,9 +29,11 @@ export function Header() {
             <Link href="/dashboard" className="text-gray-600 hover:text-neutral transition-colors">
               儀表板
             </Link>
-            <Link href="/creator" className="text-gray-600 hover:text-neutral transition-colors">
-              創作者
-            </Link>
+            {isAuthenticated && (
+              <Link href="/creator" className="text-gray-600 hover:text-neutral transition-colors">
+                創作者
+              </Link>
+            )}
           </nav>
 
           <div className="flex items-center space-x-4">

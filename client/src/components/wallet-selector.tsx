@@ -3,12 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { useReownWallet } from './wallet-provider-reown';
+import { useAuth } from '@/hooks/use-auth';
 import { formatAddress, formatUSDC } from '@/lib/web3';
-import { Wallet, Coins, ChevronDown, Gift } from 'lucide-react';
+import { Wallet, Coins, ChevronDown, Gift, Shield } from 'lucide-react';
 
 export function WalletSelector() {
   const [showWalletModal, setShowWalletModal] = useState(false);
   const { wallet, connectWallet, disconnectWallet } = useReownWallet();
+  const { isAuthenticated, login, logout, isLoggingIn } = useAuth();
 
   const handleFaucetUSDC = () => {
     window.open('https://faucet.circle.com/', '_blank');
@@ -77,19 +79,49 @@ export function WalletSelector() {
                   <span className="text-gray-600">USDC 餘額:</span>
                   <span className="font-medium text-accent">{formatUSDC(wallet.balance)}</span>
                 </div>
+                {!isAuthenticated && (
+                  <div className="pt-2 border-t">
+                    <Button
+                      onClick={() => {
+                        login();
+                        setShowWalletModal(false);
+                      }}
+                      disabled={isLoggingIn}
+                      className="w-full flex items-center space-x-2"
+                      variant="secondary"
+                    >
+                      <Shield className="w-4 h-4" />
+                      <span>{isLoggingIn ? '認證中...' : '創作者認證'}</span>
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            <Button
-              onClick={() => {
-                disconnectWallet();
-                setShowWalletModal(false);
-              }}
-              variant="outline"
-              className="w-full"
-            >
-              斷開連接
-            </Button>
+            <div className="space-y-2">
+              {isAuthenticated && (
+                <Button
+                  onClick={() => {
+                    logout();
+                    setShowWalletModal(false);
+                  }}
+                  variant="outline"
+                  className="w-full"
+                >
+                  登出創作者
+                </Button>
+              )}
+              <Button
+                onClick={() => {
+                  disconnectWallet();
+                  setShowWalletModal(false);
+                }}
+                variant="outline"
+                className="w-full"
+              >
+                斷開連接
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
