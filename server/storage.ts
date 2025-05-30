@@ -394,6 +394,13 @@ export class DatabaseStorage implements IStorage {
       .reduce((sum, p) => sum + parseFloat(p.amount), 0)
       .toFixed(6);
 
+    // Calculate unique paying users
+    const uniquePayingUsers = new Set(
+      totalPaymentsResult
+        .filter(p => p.status === 'completed' && p.walletAddress)
+        .map(p => p.walletAddress!.toLowerCase())
+    ).size;
+
     const [existingStats] = await db.select().from(protocolStats);
     
     if (existingStats) {
@@ -403,7 +410,7 @@ export class DatabaseStorage implements IStorage {
           totalPayments,
           totalUSDC,
           totalArticles,
-          activeAgents: 5 // Placeholder for now
+          activeAgents: uniquePayingUsers
         })
         .where(eq(protocolStats.id, existingStats.id));
     }

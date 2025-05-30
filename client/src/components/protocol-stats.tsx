@@ -60,8 +60,8 @@ export function ProtocolStats() {
             <div className="text-4xl font-bold text-purple-600 mb-2">
               {stats.activeAgents}
             </div>
-            <div className="text-purple-800 font-medium mb-1">活躍 AI 代理</div>
-            <div className="text-purple-600 text-sm">目前正在使用平台的 AI 代理數量</div>
+            <div className="text-purple-800 font-medium mb-1">付費用戶</div>
+            <div className="text-purple-600 text-sm">完成付款的獨立錢包地址數量</div>
           </div>
           
           <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl text-center border border-orange-200">
