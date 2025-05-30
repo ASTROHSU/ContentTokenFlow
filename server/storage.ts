@@ -109,9 +109,9 @@ export class MemStorage implements IStorage {
 
     this.stats = {
       id: 1,
-      totalPayments: 1247,
-      totalUSDC: "12450.00",
-      activeAgents: 89,
+      totalPayments: 0,
+      totalUSDC: "0.00",
+      activeAgents: 0,
       totalArticles: this.articles.size,
       updatedAt: new Date(),
     };
