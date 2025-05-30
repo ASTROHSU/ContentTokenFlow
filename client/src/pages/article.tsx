@@ -243,7 +243,10 @@ export default function Article() {
     );
   }
   
-  if (error || !article) {
+  // Handle 402 responses with preview data
+  const displayArticle = (article as any)?.preview || article;
+  
+  if (error && !displayArticle) {
     return (
       <div className="min-h-screen bg-white">
         <Header />
@@ -282,10 +285,10 @@ export default function Article() {
             <span>Back to Articles</span>
           </Button>
 
-          {article.imageUrl && (
+          {displayArticle.imageUrl && (
             <img
-              src={article.imageUrl}
-              alt={article.title}
+              src={displayArticle.imageUrl}
+              alt={displayArticle.title}
               className="w-full h-64 object-cover rounded-lg mb-8"
             />
           )}
@@ -295,35 +298,35 @@ export default function Article() {
               <Badge
                 variant="secondary"
                 className={
-                  article.category === 'Blockchain' ? 'bg-primary/10 text-primary' :
-                  article.category === 'AI' ? 'bg-secondary/10 text-secondary' :
+                  displayArticle.category === 'Blockchain' ? 'bg-primary/10 text-primary' :
+                  displayArticle.category === 'AI' ? 'bg-secondary/10 text-secondary' :
                   'bg-accent/10 text-accent'
                 }
               >
-                {article.category}
+                {displayArticle.category}
               </Badge>
               <div className="flex items-center space-x-2 text-accent font-semibold">
-                <span>{formatUSDC(article.price)} USDC</span>
+                <span>{formatUSDC(displayArticle.price)} USDC</span>
               </div>
             </div>
 
             <h1 className="text-4xl font-bold text-neutral mb-4">
-              {article.title}
+              {displayArticle.title}
             </h1>
 
             <div className="flex items-center space-x-6 text-gray-600 mb-6">
               <div className="flex items-center space-x-2">
                 <User className="w-4 h-4" />
-                <span>{article.author}</span>
+                <span>{displayArticle.author}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4" />
-                <span>{new Date(article.createdAt).toLocaleDateString()}</span>
+                <span>{new Date(displayArticle.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
 
             <p className="text-xl text-gray-600 leading-relaxed">
-              {article.excerpt}
+              {displayArticle.excerpt}
             </p>
           </div>
 
