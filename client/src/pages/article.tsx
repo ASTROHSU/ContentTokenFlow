@@ -38,10 +38,18 @@ export default function Article() {
 
   // Trigger authentication when user visits article page
   useEffect(() => {
-    if (wallet.isConnected && !isAuthenticated && !authLoading && !needsAuth) {
+    console.log('Auth check:', { 
+      isConnected: wallet.isConnected, 
+      isAuthenticated, 
+      authLoading, 
+      needsAuth 
+    });
+    
+    if (wallet.isConnected && !isAuthenticated && !authLoading) {
+      console.log('Triggering authentication...');
       setNeedsAuth(true);
     }
-  }, [wallet.isConnected, isAuthenticated, authLoading, needsAuth]);
+  }, [wallet.isConnected, isAuthenticated, authLoading]);
 
   // Reset auth state when authentication completes
   useEffect(() => {
