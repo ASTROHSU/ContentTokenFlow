@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useReownWallet } from '@/components/wallet-provider-reown';
+import { useAuth } from '@/hooks/use-auth';
 import { formatUSDC, checkUSDCPayment } from '@/lib/web3';
-import { ArrowLeft, Lock, Calendar, User } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Lock, Calendar, User, Shield } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { PaymentModal } from '@/components/payment-modal';
 
 interface ArticleData {
@@ -28,10 +29,19 @@ export default function Article() {
   const params = useParams();
   const [, setLocation] = useLocation();
   const { wallet } = useReownWallet();
+  const { isAuthenticated, isLoading: authLoading, login, isLoggingIn } = useAuth();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [unlockedArticle, setUnlockedArticle] = useState<ArticleData | null>(null);
+  const [needsAuth, setNeedsAuth] = useState(false);
   
   const articleId = params.id ? parseInt(params.id) : null;
+
+  // Trigger authentication when user visits article page
+  useEffect(() => {
+    if (wallet.isConnected && !isAuthenticated && !authLoading && !needsAuth) {
+      setNeedsAuth(true);
+    }
+  }, [wallet.isConnected, isAuthenticated, authLoading, needsAuth]);
 
   const { data: article, isLoading, error } = useQuery<ArticleData>({
     queryKey: ['/api/articles', articleId],
@@ -54,11 +64,11 @@ export default function Article() {
     enabled: !!articleId,
   });
 
-  // Check payment access via payment history
+  // Check payment access only after authentication
   const { data: hasPaymentAccess, isLoading: isCheckingPayment } = useQuery({
     queryKey: ['/api/payment-access', articleId, wallet.address],
     queryFn: async () => {
-      if (!wallet.address || !article) return false;
+      if (!wallet.address || !article || !isAuthenticated) return false;
       
       // Check payment history directly
       try {
@@ -85,7 +95,7 @@ export default function Article() {
       
       return false;
     },
-    enabled: !!wallet.address && !!article && !unlockedArticle,
+    enabled: !!wallet.address && !!article && !!isAuthenticated && !unlockedArticle,
   });
 
   // Unlock article content if payment verified
@@ -116,7 +126,43 @@ export default function Article() {
     setUnlockedArticle(fullArticle);
   }
 
-  if (isLoading) {
+  // Show authentication prompt if wallet is connected but not authenticated
+  if (wallet.isConnected && needsAuth && !isAuthenticated && !authLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="flex items-center justify-center min-h-[600px]">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Shield className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle className="text-2xl">驗證身份</CardTitle>
+              <p className="text-gray-600">
+                為了訪問付費內容，請先使用錢包簽名驗證你的身份。
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-4">
+                  錢包: {wallet.address?.slice(0, 6)}...{wallet.address?.slice(-4)}
+                </p>
+                <Button 
+                  onClick={() => login()} 
+                  disabled={isLoggingIn}
+                  className="w-full"
+                >
+                  {isLoggingIn ? '驗證中...' : '簽名驗證'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading || authLoading) {
     return (
       <div className="min-h-screen bg-white">
         <Header />
