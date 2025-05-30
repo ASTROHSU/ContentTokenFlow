@@ -217,6 +217,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check payment access for an article
+  app.get("/api/payments/check", async (req, res) => {
+    try {
+      const articleId = parseInt(req.query.articleId as string);
+      const walletAddress = req.query.walletAddress as string;
+      
+      if (!articleId || !walletAddress) {
+        return res.status(400).json({ message: "Missing required parameters" });
+      }
+
+      // Check if user has any successful payment for this article
+      const userPayments = await storage.getPaymentsByWallet(walletAddress);
+      const hasPayment = userPayments.some(payment => 
+        payment.articleId === articleId && 
+        (payment.status === 'completed' || payment.status === 'success')
+      );
+
+      console.log(`Payment check for wallet ${walletAddress}, article ${articleId}: ${hasPayment}`);
+      res.json({ hasAccess: hasPayment });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check payment access" });
+    }
+  });
+
   // Get agent activity
   app.get("/api/agent-activity", async (req, res) => {
     try {
