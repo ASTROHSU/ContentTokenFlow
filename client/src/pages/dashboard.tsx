@@ -178,6 +178,165 @@ export default function Dashboard() {
           </Card>
         </div>
       </section>
+
+      {/* AI 代理體驗區 */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">AI 代理體驗區</h2>
+            <p className="text-gray-600">
+              了解 AI 代理如何與我們的平台互動，以及為什麼需要 x402 協議
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Bot className="w-5 h-5 text-purple-500" />
+                  <span>AI 代理需要什麼？</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span className="text-sm text-gray-700">標準化的內容發現方式</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span className="text-sm text-gray-700">明確的付費資訊和價格</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span className="text-sm text-gray-700">程式化的購買流程</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span className="text-sm text-gray-700">結構化的內容格式 (JSON)</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span className="text-sm text-gray-700">無需人工介入的自動化</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Code className="w-5 h-5 text-orange-500" />
+                  <span>傳統網站的限制</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="text-sm text-gray-700">需要註冊帳號和密碼</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="text-sm text-gray-700">圖形驗證碼和 reCAPTCHA</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="text-sm text-gray-700">複雜的多步驟付款流程</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="text-sm text-gray-700">依賴瀏覽器和 Cookie</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="text-sm text-gray-700">內容格式對 AI 不友善</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-center">AI 代理互動流程示範</CardTitle>
+              <CardDescription className="text-center">
+                以下是一個典型的 AI 代理如何與我們的平台互動
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 text-sm font-bold">1</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 mb-2">內容發現</h4>
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                      <code className="text-sm">GET /api/ai/discover</code>
+                      <p className="text-xs text-gray-600 mt-1">AI 代理獲取可用內容清單和價格資訊</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <span className="text-yellow-600 text-sm font-bold">2</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 mb-2">嘗試訪問內容</h4>
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                      <code className="text-sm">GET /api/articles/1</code>
+                      <p className="text-xs text-gray-600 mt-1">收到 HTTP 402 回應和付款要求</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 text-sm font-bold">3</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 mb-2">自動化購買</h4>
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                      <code className="text-sm">POST /api/ai/purchase</code>
+                      <p className="text-xs text-gray-600 mt-1">AI 代理自動完成購買並獲得內容</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-green-600 text-sm font-bold">4</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 mb-2">內容處理</h4>
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                      <p className="text-xs text-gray-600">AI 代理獲得結構化 JSON 內容，可立即進行分析、總結或整合</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <div className="flex items-start space-x-3">
+              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mt-1">
+                <span className="text-white text-xs font-bold">!</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-900 mb-2">為什麼 x402 協議很重要？</h3>
+                <p className="text-blue-800 text-sm">
+                  x402 協議讓 AI 代理能夠像人類一樣自由地購買網路內容，打破了傳統付費牆的限制。
+                  這開啟了一個全新的經濟模式：AI 代理成為內容消費者，為優質內容創作者帶來新的收入來源。
+                  未來，AI 代理可能會成為許多網站最大的付費用戶群體。
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       
       {/* 額外說明區塊 */}
       <section className="py-16 bg-gray-50">
