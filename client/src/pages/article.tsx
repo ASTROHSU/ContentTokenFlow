@@ -54,29 +54,33 @@ export default function Article() {
     enabled: !!articleId,
   });
 
-  // Check payment status by getting user's payment history
+  // Check payment access via payment history
   const { data: hasPaymentAccess, isLoading: isCheckingPayment } = useQuery({
     queryKey: ['/api/payment-access', articleId, wallet.address],
     queryFn: async () => {
       if (!wallet.address || !article) return false;
       
-      // Check user's payment history directly
+      // Check payment history directly
       try {
         const response = await fetch(`/api/payments/wallet/${wallet.address}`);
         if (response.ok) {
           const payments = await response.json();
-          const hasPayment = payments.some(payment => 
-            payment.articleId === parseInt(articleId) && 
+          console.log('Payment history:', payments);
+          
+          const hasValidPayment = payments.some((payment: any) => 
+            payment.articleId === parseInt(String(articleId)) && 
             (payment.status === 'completed' || payment.status === 'success')
           );
           
-          if (hasPayment) {
-            console.log('Access granted via payment history');
+          if (hasValidPayment) {
+            console.log('Access granted - payment found in history');
             return true;
+          } else {
+            console.log('No valid payment found for this article');
           }
         }
       } catch (error) {
-        console.log('Payment history check failed');
+        console.log('Payment check failed:', error);
       }
       
       return false;

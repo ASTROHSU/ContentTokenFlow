@@ -105,67 +105,45 @@ export async function checkUSDCPayment(
     const amountInWei = parseUnits(minimumAmount, 6);
     console.log(`Checking payment from ${userAddress} to ${recipientAddress} for ${minimumAmount} USDC`);
     
-    // Get latest block for better range query
-    const latestBlockResponse = await fetch(`https://sepolia.base.org`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'eth_blockNumber',
-        params: [],
-        id: 1
-      })
-    });
+    // Use Basescan API to query USDC transfers from user to recipient
+    const basescanUrl = `https://api-sepolia.basescan.org/api` +
+      `?module=account` +
+      `&action=tokentx` +
+      `&contractaddress=${USDC_CONTRACT_ADDRESS}` +
+      `&address=${userAddress}` +
+      `&startblock=0` +
+      `&endblock=latest` +
+      `&sort=desc` +
+      `&apikey=${import.meta.env.VITE_BASESCAN_API_KEY}`;
     
-    const latestBlockData = await latestBlockResponse.json();
-    const latestBlock = parseInt(latestBlockData.result, 16);
-    const fromBlock = Math.max(0, latestBlock - 50000); // Check last 50,000 blocks (about 1 day)
-    
-    console.log(`Querying blocks ${fromBlock} to ${latestBlock}`);
-    
-    // Query Base Sepolia RPC for USDC transfer events
-    const response = await fetch(`https://sepolia.base.org`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'eth_getLogs',
-        params: [{
-          fromBlock: `0x${fromBlock.toString(16)}`,
-          toBlock: 'latest',
-          address: USDC_CONTRACT_ADDRESS,
-          topics: [
-            '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer event signature
-            '0x' + userAddress.slice(2).toLowerCase().padStart(64, '0'), // from address (ensure lowercase)
-            '0x' + recipientAddress.slice(2).toLowerCase().padStart(64, '0'), // to address (ensure lowercase)
-          ]
-        }],
-        id: 1
-      })
-    });
-
+    const response = await fetch(basescanUrl);
     const data = await response.json();
-    console.log('Blockchain query response:', data);
     
-    if (data.result && data.result.length > 0) {
-      console.log(`Found ${data.result.length} transfer(s)`);
-      // Check if any transfer amount is >= minimum required
-      for (const log of data.result) {
-        const transferAmount = BigInt(log.data);
-        const transferAmountInUSDC = Number(transferAmount) / 1000000; // Convert from wei to USDC
-        console.log(`Transfer found: ${transferAmountInUSDC} USDC (required: ${minimumAmount})`);
-        if (transferAmount >= amountInWei) {
-          console.log('Payment verified!');
-          return true;
+    console.log('Basescan API response:', data);
+    
+    if (data.status === '1' && data.result && data.result.length > 0) {
+      console.log(`Found ${data.result.length} USDC transaction(s)`);
+      
+      // Check for transfers to the recipient address
+      for (const tx of data.result) {
+        if (tx.to.toLowerCase() === recipientAddress.toLowerCase()) {
+          const transferAmount = BigInt(tx.value);
+          const transferAmountInUSDC = Number(transferAmount) / 1000000;
+          console.log(`Transfer found: ${transferAmountInUSDC} USDC to ${tx.to} (required: ${minimumAmount})`);
+          
+          if (transferAmount >= amountInWei) {
+            console.log('Payment verified via Basescan!');
+            return true;
+          }
         }
       }
     } else {
-      console.log('No transfers found');
+      console.log('No USDC transfers found via Basescan');
     }
     
     return false;
   } catch (error) {
-    console.error('Error checking USDC payment:', error);
+    console.error('Error checking USDC payment via Basescan:', error);
     return false;
   }
 }

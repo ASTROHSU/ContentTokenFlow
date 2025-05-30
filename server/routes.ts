@@ -217,11 +217,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Check payment access for an article
+  // Check payment access for an article (database + blockchain verification)
   app.get("/api/payments/check", async (req, res) => {
     try {
       const articleId = parseInt(req.query.articleId as string);
       const walletAddress = req.query.walletAddress as string;
+      const minimumAmount = req.query.amount as string;
       
       console.log(`Payment check request: articleId=${articleId}, walletAddress=${walletAddress}`);
       
@@ -230,21 +231,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required parameters" });
       }
 
-      // Check if user has any successful payment for this article
+      // First check database payments
       const userPayments = await storage.getPaymentsByWallet(walletAddress);
       console.log(`Found ${userPayments.length} payments for wallet ${walletAddress}`);
-      console.log('Payments:', userPayments.map(p => ({ id: p.id, articleId: p.articleId, status: p.status })));
       
-      const hasPayment = userPayments.some(payment => 
+      const hasDbPayment = userPayments.some(payment => 
         payment.articleId === articleId && 
         (payment.status === 'completed' || payment.status === 'success')
       );
 
-      console.log(`Payment check result for wallet ${walletAddress}, article ${articleId}: ${hasPayment}`);
-      res.json({ hasAccess: hasPayment });
+      if (hasDbPayment) {
+        console.log('Access granted via database payment record');
+        return res.json({ hasAccess: true, source: 'database' });
+      }
+
+      // Fallback to blockchain verification using Basescan API
+      if (minimumAmount && process.env.BASESCAN_API_KEY) {
+        try {
+          const recipientAddress = '0x36F322fC85B24aB13263CFE9217B28f8E2b38381';
+          const usdcContract = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+          
+          const basescanUrl = `https://api-sepolia.basescan.org/api` +
+            `?module=account` +
+            `&action=tokentx` +
+            `&contractaddress=${usdcContract}` +
+            `&address=${walletAddress}` +
+            `&startblock=0` +
+            `&endblock=latest` +
+            `&sort=desc` +
+            `&apikey=${process.env.BASESCAN_API_KEY}`;
+          
+          const response = await fetch(basescanUrl);
+          const data = await response.json();
+          
+          if (data.status === '1' && data.result && data.result.length > 0) {
+            const minimumAmountWei = BigInt(parseFloat(minimumAmount) * 1000000);
+            
+            for (const tx of data.result) {
+              if (tx.to.toLowerCase() === recipientAddress.toLowerCase()) {
+                const transferAmount = BigInt(tx.value);
+                if (transferAmount >= minimumAmountWei) {
+                  console.log('Access granted via blockchain verification');
+                  return res.json({ hasAccess: true, source: 'blockchain' });
+                }
+              }
+            }
+          }
+        } catch (blockchainError) {
+          console.log('Blockchain verification failed:', blockchainError);
+        }
+      }
+
+      console.log(`No valid payment found for wallet ${walletAddress}, article ${articleId}`);
+      res.json({ hasAccess: false });
     } catch (error) {
       console.error('Payment check error:', error);
-      res.status(500).json({ message: "Failed to check payment access", error: error.message });
+      res.status(500).json({ message: "Failed to check payment access" });
     }
   });
 
