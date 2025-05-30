@@ -63,10 +63,11 @@ export function ReownWalletProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isConnected && address) {
       const balanceStr = balance ? (Number(balance.formatted)).toFixed(2) : '0.00';
+      const normalizedAddress = address.toLowerCase();
       
       setWallet({
         isConnected: true,
-        address,
+        address: normalizedAddress,
         balance: balanceStr,
         isConnecting: false,
       });
@@ -75,7 +76,7 @@ export function ReownWalletProvider({ children }: { children: ReactNode }) {
       fetch('/api/wallet/connect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress: address, balance: balanceStr }),
+        body: JSON.stringify({ walletAddress: normalizedAddress, balance: balanceStr }),
         credentials: 'include',
       }).catch(console.error);
 
