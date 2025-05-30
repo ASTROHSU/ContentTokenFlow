@@ -117,10 +117,17 @@ export function PaymentModal({ article, isOpen, onClose }: PaymentModalProps) {
   };
 
   const handleReadArticle = () => {
+    // Force refresh article content and payment status
+    queryClient.invalidateQueries({ queryKey: ['/api/payments'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/articles', article.id] });
+    queryClient.invalidateQueries({ queryKey: ['/api/articles', article.id, 'unlock'] });
+    
     onClose();
     setShowSuccess(false);
     setPaymentResult(null);
-    setLocation(`/article/${article.id}`);
+    
+    // Reload the page to trigger fresh data fetch
+    window.location.reload();
   };
 
   const handleClose = () => {
