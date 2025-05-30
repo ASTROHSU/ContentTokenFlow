@@ -334,10 +334,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPaymentsByWallet(walletAddress: string): Promise<Payment[]> {
-    return await db
-      .select()
-      .from(payments)
-      .where(eq(payments.walletAddress, walletAddress));
+    // Use case-insensitive comparison for wallet addresses
+    const allPayments = await db.select().from(payments);
+    return allPayments.filter(payment => 
+      payment.walletAddress?.toLowerCase() === walletAddress.toLowerCase()
+    );
   }
 
   async updatePaymentStatus(id: number, status: string, txHash?: string): Promise<void> {

@@ -124,11 +124,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // For non-creators, check payment directly without requiring authentication
       if (!isCreator && walletAddress) {
-        const normalizedWallet = walletAddress.toLowerCase();
+        // Use wallet address as-is for payment verification
         
         // First check database for existing payments
-        console.log(`Checking payments for wallet: ${normalizedWallet}`);
-        const userPayments = await storage.getPaymentsByWallet(normalizedWallet);
+        console.log(`Checking payments for wallet: ${walletAddress}`);
+        const userPayments = await storage.getPaymentsByWallet(walletAddress);
         console.log(`Found ${userPayments.length} payments:`, userPayments.map(p => ({
           id: p.id,
           articleId: p.articleId,
@@ -146,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // If no database record, check blockchain
         if (!hasAccess) {
-          hasAccess = await blockchainVerifier.checkArticleAccessWithBlockchain(storage, id, normalizedWallet);
+          hasAccess = await blockchainVerifier.checkArticleAccessWithBlockchain(storage, id, walletAddress);
         }
       }
       
