@@ -30,7 +30,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // SIWE Authentication
   app.post("/api/auth/verify", async (req, res) => {
     try {
+      console.log('SIWE verification request body:', req.body);
       const { message, signature } = siweVerifySchema.parse(req.body);
+      
+      console.log('SIWE message received:', message);
+      console.log('SIWE signature received:', signature);
       
       const siweMessage = new SiweMessage(message);
       const fields = await siweMessage.verify({ signature });
@@ -41,9 +45,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Allow any wallet address to authenticate
       req.session.authenticated = true;
       req.session.address = normalizedAddress;
+      console.log('SIWE verification successful for address:', normalizedAddress);
       res.json({ success: true, address: normalizedAddress });
     } catch (error) {
       console.error('SIWE verification error:', error);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
       res.status(400).json({ message: "Invalid signature" });
     }
   });
