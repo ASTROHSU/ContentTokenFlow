@@ -56,8 +56,8 @@ export function useAuth() {
 
         console.log('錢包已連接，地址:', wallet.address);
 
-        // Convert to EIP-55 checksum format for SIWE
-        const siweAddress = toChecksumAddress(wallet.address);
+        // Use original wallet address format
+        const walletAddress = wallet.address;
 
         // Create SIWE message
         console.log('創建 SIWE 訊息...');
@@ -65,7 +65,7 @@ export function useAuth() {
         try {
           message = new SiweMessage({
             domain: window.location.host,
-            address: siweAddress, // Use EIP-55 format
+            address: walletAddress, // Use original format
             statement: 'Sign in to access premium content',
             uri: window.location.origin,
             version: '1',
@@ -90,7 +90,7 @@ export function useAuth() {
         console.log('請求錢包簽名...');
         const signature = await (window as any).ethereum.request({
           method: 'personal_sign',
-          params: [messageString, siweAddress],
+          params: [messageString, walletAddress],
         });
 
         console.log('簽名完成:', signature);
