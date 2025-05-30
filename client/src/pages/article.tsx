@@ -213,6 +213,66 @@ export default function Article() {
     );
   }
 
+  // Handle payment required error specially to show purchase option
+  if (error?.message?.includes('Payment required')) {
+    return (
+      <>
+        <div className="min-h-screen bg-white">
+          <Header />
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Lock className="mx-auto text-4xl text-red-500 mb-4" />
+                <h2 className="text-2xl font-bold mb-2">Article Access Restricted</h2>
+                <p className="text-gray-600 mb-6">
+                  Payment required: This content requires payment to access
+                </p>
+                
+                {wallet.isConnected && isAuthenticated ? (
+                  <div className="mb-6">
+                    <Button 
+                      onClick={() => setShowPaymentModal(true)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+                    >
+                      Purchase Article ($1.50 USDC)
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="mb-6">
+                    <p className="text-sm text-gray-500 mb-4">Please connect wallet and sign in to purchase</p>
+                    {!wallet.isConnected && (
+                      <Button 
+                        onClick={() => window.location.reload()}
+                        className="bg-primary text-white"
+                      >
+                        Connect Wallet
+                      </Button>
+                    )}
+                  </div>
+                )}
+                
+                <Button onClick={() => setLocation('/')}>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Articles
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        
+        <PaymentModal
+          article={{
+            id: parseInt(articleId?.toString() || '1'),
+            title: '被遺忘的 402，如何成為 AI 時代最重要的支付入口？',
+            price: '1.50',
+          }}
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      </>
+    );
+  }
+  
   if (error || !article) {
     return (
       <div className="min-h-screen bg-white">
@@ -225,6 +285,7 @@ export default function Article() {
               <p className="text-gray-600 mb-6">
                 {error?.message || 'This article could not be loaded.'}
               </p>
+              
               <Button onClick={() => setLocation('/')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Articles
