@@ -41,6 +41,12 @@ export default function Dashboard() {
   };
 
   const handleStepClick = async (stepNumber: number) => {
+    // 如果點擊的是已經展開的步驟，則收闔
+    if (activeStep === stepNumber) {
+      setActiveStep(null);
+      return;
+    }
+    
     setActiveStep(stepNumber);
     
     try {
@@ -229,46 +235,7 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Bot className="w-5 h-5 text-purple-500" />
-                <span>AI 代理 API 端點</span>
-              </CardTitle>
-              <CardDescription>
-                供 AI 代理使用的標準化 API
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {apiEndpoints.map((endpoint, index) => (
-                  <div key={index} className="border rounded-lg p-4 bg-gray-50">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-3">
-                        <Badge variant={endpoint.method === 'GET' ? 'default' : 'secondary'}>
-                          {endpoint.method}
-                        </Badge>
-                        <code className="text-sm font-mono bg-gray-200 px-2 py-1 rounded">
-                          {endpoint.path}
-                        </code>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(`${endpoint.method} ${window.location.origin}${endpoint.path}`)}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-2">{endpoint.description}</p>
-                    <div className="text-xs text-gray-500">
-                      <strong>必要標頭:</strong> {endpoint.headers.join(', ')}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
       </section>
 
@@ -375,7 +342,7 @@ export default function Dashboard() {
                       <code className="text-sm">GET /api/ai/discover</code>
                       <p className="text-xs text-gray-600 mt-1">點擊查看 AI 代理如何獲取內容清單</p>
                     </div>
-                    {stepResults[1] && (
+                    {stepResults[1] && activeStep === 1 && (
                       <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
                         <h5 className="font-semibold text-blue-900 mb-2">API 回應：</h5>
                         <pre className="text-xs text-blue-800 overflow-x-auto whitespace-pre-wrap">
@@ -402,7 +369,7 @@ export default function Dashboard() {
                       <code className="text-sm">GET /api/articles/1</code>
                       <p className="text-xs text-gray-600 mt-1">點擊查看 HTTP 402 回應和付款要求</p>
                     </div>
-                    {stepResults[2] && (
+                    {stepResults[2] && activeStep === 2 && (
                       <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                         <h5 className="font-semibold text-yellow-900 mb-2">HTTP 402 回應：</h5>
                         <div className="text-xs text-yellow-800">
@@ -433,7 +400,7 @@ export default function Dashboard() {
                       <code className="text-sm">POST /api/ai/purchase</code>
                       <p className="text-xs text-gray-600 mt-1">點擊查看 AI 代理如何自動完成購買</p>
                     </div>
-                    {stepResults[3] && (
+                    {stepResults[3] && activeStep === 3 && (
                       <div className="mt-3 bg-purple-50 border border-purple-200 rounded-lg p-3">
                         <h5 className="font-semibold text-purple-900 mb-2">購買成功回應：</h5>
                         <pre className="text-xs text-purple-800 overflow-x-auto whitespace-pre-wrap">
@@ -459,7 +426,7 @@ export default function Dashboard() {
                          onClick={() => handleStepClick(4)}>
                       <p className="text-xs text-gray-600">點擊了解 AI 代理如何處理獲得的內容</p>
                     </div>
-                    {stepResults[4] && (
+                    {stepResults[4] && activeStep === 4 && (
                       <div className="mt-3 bg-green-50 border border-green-200 rounded-lg p-3">
                         <h5 className="font-semibold text-green-900 mb-2">內容處理能力：</h5>
                         <div className="text-xs text-green-800">
@@ -473,7 +440,7 @@ export default function Dashboard() {
                           <div>
                             <strong>AI 處理能力：</strong>
                             <ul className="mt-1 ml-4 list-disc">
-                              {stepResults[4].capabilities.map((capability, index) => (
+                              {stepResults[4].capabilities.map((capability: string, index: number) => (
                                 <li key={index}>{capability}</li>
                               ))}
                             </ul>

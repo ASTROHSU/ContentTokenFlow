@@ -72,7 +72,8 @@ export function ContentGrid() {
                   <img 
                     src={article.imageUrl} 
                     alt={article.title}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => handleUnlock(article)}
                   />
                 )}
                 <CardContent className="p-6">
