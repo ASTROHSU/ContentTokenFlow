@@ -116,12 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!isCreator && walletAddress) {
         const normalizedWallet = walletAddress.toLowerCase();
         
-        // Check if this is the wallet that already paid
-        if (normalizedWallet === '0x2e5d97a0211ad48dd89a74a74082d20b8f574156') {
-          hasAccess = true;
-        } else {
-          hasAccess = await blockchainVerifier.checkArticleAccessWithBlockchain(storage, id, normalizedWallet);
-        }
+        hasAccess = await blockchainVerifier.checkArticleAccessWithBlockchain(storage, id, normalizedWallet);
       }
       
       if (!hasAccess) {

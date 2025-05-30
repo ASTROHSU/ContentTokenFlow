@@ -49,11 +49,14 @@ export function useAuth() {
 
       const messageString = message.prepareMessage();
 
-      // Request signature through WalletConnect
-      const { signMessage } = await import('@wagmi/core');
-      
-      const signature = await signMessage({
-        message: messageString,
+      // Request signature using WalletConnect provider
+      if (!(window as any).ethereum) {
+        throw new Error('請確保錢包已連接');
+      }
+
+      const signature = await (window as any).ethereum.request({
+        method: 'personal_sign',
+        params: [messageString, normalizedAddress],
       });
 
       // Verify with backend
