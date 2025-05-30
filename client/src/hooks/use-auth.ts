@@ -29,11 +29,12 @@ export function useAuth() {
       const message = new SiweMessage({
         domain: window.location.host,
         address: wallet.address,
-        statement: '登入區塊勢創作者系統',
+        statement: 'Sign in to access premium content',
         uri: window.location.origin,
         version: '1',
         chainId: 84532, // Base Sepolia
-        nonce: Math.random().toString(36),
+        nonce: Math.random().toString(36).substring(2, 15),
+        issuedAt: new Date().toISOString(),
       });
 
       const messageString = message.prepareMessage();

@@ -34,14 +34,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const siweMessage = new SiweMessage(message);
       const fields = await siweMessage.verify({ signature });
       
-      if (fields.data.address.toLowerCase() === CREATOR_ADDRESS.toLowerCase()) {
-        req.session.authenticated = true;
-        req.session.address = fields.data.address;
-        res.json({ success: true, address: fields.data.address });
-      } else {
-        res.status(403).json({ message: "Unauthorized address" });
-      }
+      // Allow any wallet address to authenticate
+      req.session.authenticated = true;
+      req.session.address = fields.data.address;
+      res.json({ success: true, address: fields.data.address });
     } catch (error) {
+      console.error('SIWE verification error:', error);
       res.status(400).json({ message: "Invalid signature" });
     }
   });
