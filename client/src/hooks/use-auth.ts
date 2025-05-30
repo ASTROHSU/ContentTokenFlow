@@ -37,8 +37,9 @@ export function useAuth() {
 
         console.log('錢包已連接，地址:', wallet.address);
 
-        // Normalize address to lowercase for consistency
-        const normalizedAddress = wallet.address.toLowerCase();
+        // Use original wallet address for SIWE (EIP-55 format required)
+        const siweAddress = wallet.address; // Keep original format for SIWE
+        const normalizedAddress = wallet.address.toLowerCase(); // For backend consistency
 
         // Create SIWE message
         console.log('創建 SIWE 訊息...');
@@ -46,7 +47,7 @@ export function useAuth() {
         try {
           message = new SiweMessage({
             domain: window.location.host,
-            address: normalizedAddress,
+            address: siweAddress, // Use EIP-55 format
             statement: 'Sign in to access premium content',
             uri: window.location.origin,
             version: '1',
