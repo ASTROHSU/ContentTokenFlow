@@ -35,10 +35,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const siweMessage = new SiweMessage(message);
       const fields = await siweMessage.verify({ signature });
       
+      // Normalize address to lowercase for consistency
+      const normalizedAddress = fields.data.address.toLowerCase();
+      
       // Allow any wallet address to authenticate
       req.session.authenticated = true;
-      req.session.address = fields.data.address;
-      res.json({ success: true, address: fields.data.address });
+      req.session.address = normalizedAddress;
+      res.json({ success: true, address: normalizedAddress });
     } catch (error) {
       console.error('SIWE verification error:', error);
       res.status(400).json({ message: "Invalid signature" });
@@ -56,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const walletAddress = req.query.wallet as string;
     
     if (walletAddress && req.session.address && 
-        walletAddress.toLowerCase() !== req.session.address.toLowerCase()) {
+        walletAddress.toLowerCase() !== req.session.address) {
       req.session.authenticated = false;
       req.session.address = undefined;
     }
@@ -188,17 +191,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { walletAddress, balance } = connectWalletSchema.parse(req.body);
       
+      // Normalize address to lowercase for consistency
+      const normalizedAddress = walletAddress.toLowerCase();
+      
       // Check if user exists, create if not
-      let user = await storage.getUserByWallet(walletAddress);
+      let user = await storage.getUserByWallet(normalizedAddress);
       if (!user) {
         user = await storage.createUser({
-          username: walletAddress.slice(0, 10),
+          username: normalizedAddress.slice(0, 10),
           password: "wallet_auth",
-          walletAddress,
+          walletAddress: normalizedAddress,
           usdcBalance: balance || "0",
         });
       } else if (balance) {
-        await storage.updateUserBalance(walletAddress, balance);
+        await storage.updateUserBalance(normalizedAddress, balance);
       }
 
       res.json({ user, connected: true });
