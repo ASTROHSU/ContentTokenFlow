@@ -29,7 +29,7 @@ export default function Article() {
   const params = useParams();
   const [, setLocation] = useLocation();
   const { wallet } = useReownWallet();
-  const { isAuthenticated, isLoading: authLoading, login, isLoggingIn } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, login, isLoggingIn, address: authAddress } = useAuth();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [unlockedArticle, setUnlockedArticle] = useState<ArticleData | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
@@ -44,7 +44,7 @@ export default function Article() {
       authLoading, 
       needsAuth,
       walletAddress: wallet.address,
-      authAddress: authStatus?.address
+      authAddress: authAddress
     });
     
     // Check if we need authentication:
@@ -52,14 +52,14 @@ export default function Article() {
     // 2. Wallet is connected and authenticated but addresses don't match
     const needsNewAuth = wallet.isConnected && (
       !isAuthenticated || 
-      (isAuthenticated && authStatus?.address?.toLowerCase() !== wallet.address?.toLowerCase())
+      (isAuthenticated && authAddress?.toLowerCase() !== wallet.address?.toLowerCase())
     );
     
     if (needsNewAuth && !authLoading) {
       console.log('Triggering authentication...');
       setNeedsAuth(true);
     }
-  }, [wallet.isConnected, wallet.address, isAuthenticated, authLoading, authStatus]);
+  }, [wallet.isConnected, wallet.address, isAuthenticated, authLoading, authAddress]);
 
   // Reset auth state when authentication completes
   useEffect(() => {

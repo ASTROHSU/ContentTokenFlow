@@ -100,6 +100,7 @@ export function useAuth() {
     isAuthenticated: authStatus?.authenticated || false,
     isLoading,
     address: authStatus?.address,
+    authStatus,
     login: loginMutation.mutate,
     logout: logoutMutation.mutate,
     isLoggingIn: loginMutation.isPending,
