@@ -45,13 +45,38 @@ export function PaymentModal({ article, isOpen, onClose }: PaymentModalProps) {
         // Process real USDC payment on blockchain
         result = await processUSDCPayment(article.price, wallet.address!);
       } else {
-        // For AI agent payments, simulate the transaction
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // For AI agent payments, use automated purchase API
+        const agentId = `AI_Agent_${Date.now()}`;
+        const agentWallet = `0x${Math.random().toString(16).substr(2, 40)}`;
+        
+        const response = await fetch('/api/ai/purchase', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-AI-Agent': 'true',
+            'User-Agent': 'AI-Agent/1.0'
+          },
+          body: JSON.stringify({
+            articleId: article.id,
+            agentId,
+            agentWallet,
+            metadata: {
+              source: 'payment-modal',
+              timestamp: new Date().toISOString(),
+              articleTitle: article.title
+            }
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('AI agent payment failed');
+        }
+        
+        const data = await response.json();
         result = {
-          txHash: '0x' + Math.random().toString(16).substr(2, 64),
-          status: 'success',
-          gasUsed: '21000',
-          gasFee: '0.001',
+          txHash: data.payment.txHash,
+          gasUsed: '0',
+          gasFee: '0.000',
         };
       }
       
@@ -229,7 +254,7 @@ export function PaymentModal({ article, isOpen, onClose }: PaymentModalProps) {
               <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">or simulate AI payment</span>
+              <span className="px-2 bg-white text-gray-500">或使用 AI 代理自動付款</span>
             </div>
           </div>
 
@@ -240,7 +265,7 @@ export function PaymentModal({ article, isOpen, onClose }: PaymentModalProps) {
             className="w-full border-secondary text-secondary hover:bg-secondary hover:text-white flex items-center justify-center space-x-2"
           >
             <Bot className="w-4 h-4" />
-            <span>Simulate AI Agent Payment</span>
+            <span>AI 代理自動購買</span>
           </Button>
         </div>
 

@@ -92,24 +92,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get single article
+  // Get single article with x402 protocol support
   app.get("/api/articles/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const article = await storage.getArticle(id);
       const walletAddress = req.query.wallet as string;
+      const isAIAgent = req.headers['user-agent']?.includes('AI-Agent') || req.headers['x-ai-agent'];
       
       if (!article) {
         return res.status(404).json({ message: "Article not found" });
       }
 
-      // Return article with wallet address for client-side blockchain verification
-      res.json({
-        ...article,
-        hasAccess: false, // Will be checked on client-side via blockchain
-        content: null, // Will be revealed after blockchain verification
-        walletAddress: walletAddress || null,
-      });
+      // Check if user has paid for access
+      const hasAccess = walletAddress ? await storage.checkArticleAccess(id, walletAddress) : false;
+      
+      if (!hasAccess) {
+        // Return x402 Payment Required response with proper headers
+        res.status(402);
+        res.set({
+          'X-Payment-Required': 'true',
+          'X-Payment-Amount': article.price,
+          'X-Payment-Currency': 'USDC',
+          'X-Payment-Recipient': '0x36F322fC85B24aB13263CFE9217B28f8E2b38381',
+          'X-Payment-Network': 'base-sepolia',
+          'X-Content-Type': 'premium-article',
+          'X-AI-Accessible': isAIAgent ? 'true' : 'false',
+          'X-Payment-Endpoint': '/api/payments'
+        });
+        
+        return res.json({
+          error: 'Payment Required',
+          code: 402,
+          message: 'This content requires payment to access',
+          payment: {
+            amount: article.price,
+            currency: 'USDC',
+            recipient: '0x36F322fC85B24aB13263CFE9217B28f8E2b38381',
+            network: 'base-sepolia',
+            paymentEndpoint: '/api/payments',
+            unlockEndpoint: `/api/articles/${id}/unlock`
+          },
+          preview: {
+            ...article,
+            content: article.excerpt,
+            hasAccess: false,
+          }
+        });
+      } else {
+        // Return full article for authenticated users
+        res.json({
+          ...article,
+          hasAccess: true,
+        });
+      }
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch article" });
     }
@@ -193,6 +229,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ payment, status: "processing" });
     } catch (error) {
       res.status(400).json({ message: "Invalid payment data" });
+    }
+  });
+
+  // AI Agent Discovery API - List available content
+  app.get("/api/ai/discover", async (req, res) => {
+    try {
+      const articles = await storage.getArticles();
+      const agentData = articles.map(article => ({
+        id: article.id,
+        title: article.title,
+        excerpt: article.excerpt,
+        category: article.category,
+        price: article.price,
+        author: article.author,
+        createdAt: article.createdAt,
+        paymentRequired: true,
+        accessEndpoint: `/api/articles/${article.id}`,
+        paymentEndpoint: '/api/ai/purchase'
+      }));
+      
+      res.set({
+        'X-AI-Content-Count': articles.length.toString(),
+        'X-Payment-Currency': 'USDC',
+        'X-Payment-Network': 'base-sepolia'
+      });
+      
+      res.json({
+        platform: 'blocktrend-ai',
+        contentType: 'premium-articles',
+        totalItems: articles.length,
+        currency: 'USDC',
+        network: 'base-sepolia',
+        items: agentData
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch content for AI" });
+    }
+  });
+
+  // AI Agent Purchase API - Automated payment for AI agents
+  app.post("/api/ai/purchase", async (req, res) => {
+    try {
+      const { articleId, agentId, agentWallet, metadata } = req.body;
+      
+      if (!articleId || !agentId || !agentWallet) {
+        return res.status(400).json({ 
+          message: "Missing required fields: articleId, agentId, agentWallet" 
+        });
+      }
+      
+      const article = await storage.getArticle(articleId);
+      if (!article) {
+        return res.status(404).json({ message: "Article not found" });
+      }
+      
+      // Check if already purchased
+      const hasAccess = await storage.checkArticleAccess(articleId, agentWallet);
+      if (hasAccess) {
+        return res.status(200).json({
+          message: "Content already purchased",
+          accessEndpoint: `/api/articles/${articleId}?wallet=${agentWallet}`
+        });
+      }
+      
+      // Create payment record for AI agent
+      const payment = await storage.createPayment({
+        articleId,
+        walletAddress: agentWallet,
+        amount: article.price,
+        paymentType: 'ai_agent',
+        status: 'completed',
+        agentId,
+        txHash: `ai_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      });
+      
+      // Create agent activity record
+      await storage.createAgentActivity({
+        agentId,
+        action: 'purchase_content',
+        articleId,
+        amount: article.price,
+        status: 'completed'
+      });
+      
+      await storage.updateProtocolStats();
+      
+      res.json({
+        success: true,
+        payment,
+        message: "Content purchased successfully",
+        accessEndpoint: `/api/articles/${articleId}?wallet=${agentWallet}`,
+        content: {
+          id: article.id,
+          title: article.title,
+          content: article.content,
+          metadata: {
+            category: article.category,
+            author: article.author,
+            createdAt: article.createdAt,
+            purchaseTimestamp: new Date().toISOString(),
+            agentMetadata: metadata
+          }
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to process AI agent purchase" });
     }
   });
 
