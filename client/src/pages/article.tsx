@@ -381,9 +381,9 @@ export default function Article() {
 
       <PaymentModal
         article={{
-          id: article.id,
-          title: article.title,
-          price: article.price,
+          id: displayArticle?.id || 1,
+          title: displayArticle?.title || '被遺忘的 402，如何成為 AI 時代最重要的支付入口？',
+          price: displayArticle?.price || '1.50',
         }}
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
