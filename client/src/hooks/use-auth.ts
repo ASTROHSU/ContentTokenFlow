@@ -72,9 +72,10 @@ export function useAuth() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] });
+      const isCreator = wallet.address?.toLowerCase() === '0x36F322fC85B24aB13263CFE9217B28f8E2b38381'.toLowerCase();
       toast({
         title: "登入成功",
-        description: "歡迎回來！你現在可以管理文章了。",
+        description: isCreator ? "歡迎回來！你現在可以管理文章了。" : "歡迎回來！你現在可以閱讀文章了。",
       });
     },
     onError: (error: Error) => {
