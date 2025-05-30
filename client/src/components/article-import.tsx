@@ -194,12 +194,16 @@ export function ArticleImport() {
 
           <div>
             <Label htmlFor="content">文章內容 *</Label>
+            <p className="text-sm text-gray-600 mb-2">
+              直接貼上你的文章，系統會自動保持原始排版和段落分隔
+            </p>
             <Textarea
               id="content"
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              placeholder="輸入完整的文章內容..."
-              rows={8}
+              placeholder="直接貼上你的文章內容，包括段落和換行都會被保留..."
+              rows={12}
+              className="font-mono text-sm"
               required
             />
           </div>

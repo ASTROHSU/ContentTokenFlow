@@ -159,8 +159,15 @@ export default function Article() {
           {article.hasAccess && article.content ? (
             <Card>
               <CardContent className="p-8">
-                <div className="prose prose-lg max-w-none text-gray-800 leading-relaxed">
-                  <div className="whitespace-pre-wrap text-base leading-7">
+                <div className="prose prose-lg max-w-none">
+                  <div 
+                    className="whitespace-pre-wrap text-gray-800 leading-7 text-base"
+                    style={{ 
+                      fontFamily: 'system-ui, -apple-system, sans-serif',
+                      lineHeight: '1.75',
+                      letterSpacing: '0.01em'
+                    }}
+                  >
                     {article.content}
                   </div>
                 </div>
