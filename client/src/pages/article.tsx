@@ -364,8 +364,8 @@ export default function Article() {
             </p>
           </div>
 
-          {/* Show content if unlocked via payment verification */}
-          {(unlockedArticle && unlockedArticle.content) || (hasPaymentAccess && fullArticle && fullArticle.content) ? (
+          {/* Show content if article has content (already paid) or unlocked */}
+          {article.content || (unlockedArticle && unlockedArticle.content) || (hasPaymentAccess && fullArticle && fullArticle.content) ? (
             <Card>
               <CardContent className="p-8">
                 <div className="prose prose-lg max-w-none">
@@ -377,7 +377,7 @@ export default function Article() {
                       letterSpacing: '0.01em'
                     }}
                   >
-                    {unlockedArticle?.content || fullArticle?.content}
+                    {article.content || unlockedArticle?.content || fullArticle?.content}
                   </div>
                 </div>
               </CardContent>
