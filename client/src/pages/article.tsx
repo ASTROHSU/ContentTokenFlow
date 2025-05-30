@@ -74,8 +74,9 @@ export default function Article() {
   }, [isAuthenticated, needsAuth]);
 
   const { data: article, isLoading, error } = useQuery<ArticleData>({
-    queryKey: ['/api/articles', articleId],
+    queryKey: ['/api/articles', articleId, wallet.address],
     queryFn: async () => {
+      console.log('Fetching article with wallet:', wallet.address);
       const response = await fetch(`/api/articles/${articleId}?wallet=${wallet.address || ''}`, {
         credentials: 'include',
       });
@@ -91,7 +92,7 @@ export default function Article() {
       
       return response.json();
     },
-    enabled: !!articleId,
+    enabled: !!articleId && !!wallet.address,
   });
 
   // Check payment access only after authentication
