@@ -104,8 +104,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Article not found" });
       }
 
-      // Check if user has paid for access
-      const hasAccess = walletAddress ? await storage.checkArticleAccess(id, walletAddress) : false;
+      // Check if user has paid for access or is the creator
+      const isCreator = walletAddress?.toLowerCase() === '0x36F322fC85B24aB13263CFE9217B28f8E2b38381'.toLowerCase();
+      const hasAccess = isCreator || (walletAddress ? await storage.checkArticleAccess(id, walletAddress) : false);
       
       if (!hasAccess) {
         // Return x402 Payment Required response with proper headers
