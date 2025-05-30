@@ -77,16 +77,22 @@ export function ContentGrid() {
                 )}
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-3">
-                    <Badge 
-                      variant="secondary"
-                      className={
-                        article.category === 'Blockchain' ? 'bg-primary/10 text-primary' :
-                        article.category === 'AI' ? 'bg-secondary/10 text-secondary' :
-                        'bg-accent/10 text-accent'
-                      }
-                    >
-                      {article.category}
-                    </Badge>
+                    <div className="flex items-center space-x-2">
+                      <Badge 
+                        variant="secondary"
+                        className={
+                          article.category === 'Blockchain' ? 'bg-primary/10 text-primary' :
+                          article.category === 'AI' ? 'bg-secondary/10 text-secondary' :
+                          'bg-accent/10 text-accent'
+                        }
+                      >
+                        {article.category}
+                      </Badge>
+                      <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full flex items-center space-x-1">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                        <span>x402</span>
+                      </span>
+                    </div>
                     <div className="flex items-center space-x-2">
                       <Coins className="w-4 h-4 text-accent" />
                       <span className="text-sm font-medium">

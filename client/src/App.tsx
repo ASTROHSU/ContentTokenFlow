@@ -10,6 +10,7 @@ import Home from "@/pages/home";
 import Article from "@/pages/article";
 import Dashboard from "@/pages/dashboard";
 import Creator from "@/pages/creator";
+import X402Status from "@/pages/x402-status";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/article/:id" component={Article} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/creator" component={Creator} />
+      <Route path="/x402" component={X402Status} />
       <Route component={NotFound} />
     </Switch>
   );
