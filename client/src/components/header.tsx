@@ -31,7 +31,7 @@ export function Header() {
               文章
             </Link>
             <Link href="/dashboard" className="text-gray-600 hover:text-neutral transition-colors">
-              儀表板
+              關於
             </Link>
 
             {isCreator && (

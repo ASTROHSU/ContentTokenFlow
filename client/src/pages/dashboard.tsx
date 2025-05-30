@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function Dashboard() {
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [activeStep, setActiveStep] = useState<number | null>(null);
+  const [stepResults, setStepResults] = useState<{[key: number]: any}>({});
   const { toast } = useToast();
 
   const handleTestX402 = async () => {
@@ -36,6 +38,97 @@ export default function Dashboard() {
       title: "已複製到剪貼板",
       description: "API 端點已複製",
     });
+  };
+
+  const handleStepClick = async (stepNumber: number) => {
+    setActiveStep(stepNumber);
+    
+    try {
+      let result;
+      
+      switch (stepNumber) {
+        case 1: // 內容發現
+          const discoverResponse = await fetch('/api/ai/discover', {
+            headers: { 'User-Agent': 'AI-Agent/Demo' }
+          });
+          result = await discoverResponse.json();
+          break;
+          
+        case 2: // 嘗試訪問內容
+          const accessResponse = await fetch('/api/articles/1', {
+            headers: { 'User-Agent': 'AI-Agent/Demo' }
+          });
+          const headers = {};
+          accessResponse.headers.forEach((value, key) => {
+            if (key.startsWith('x-payment') || key === 'content-type') {
+              headers[key] = value;
+            }
+          });
+          result = {
+            status: accessResponse.status,
+            statusText: accessResponse.statusText,
+            headers,
+            body: await accessResponse.json()
+          };
+          break;
+          
+        case 3: // 自動化購買
+          const purchaseResponse = await fetch('/api/ai/purchase', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-AI-Agent': 'true',
+              'User-Agent': 'AI-Agent/Demo'
+            },
+            body: JSON.stringify({
+              articleId: 1,
+              agentId: 'DemoAI_Agent',
+              agentWallet: '0xDemo' + Math.random().toString(16).substr(2, 36),
+              metadata: {
+                purpose: 'demonstration',
+                timestamp: new Date().toISOString()
+              }
+            })
+          });
+          result = await purchaseResponse.json();
+          break;
+          
+        case 4: // 內容處理
+          result = {
+            message: "AI 代理獲得完整的 JSON 格式內容，包含：",
+            structure: {
+              id: "文章 ID",
+              title: "文章標題",
+              content: "完整文章內容（可進行分析、總結、翻譯等處理）",
+              metadata: {
+                category: "分類標籤",
+                author: "作者資訊",
+                purchaseTimestamp: "購買時間戳",
+                agentMetadata: "AI 代理的執行記錄"
+              }
+            },
+            capabilities: [
+              "自動摘要和關鍵字提取",
+              "多語言翻譯和本地化",
+              "主題分類和內容標籤",
+              "與其他數據源的交叉分析",
+              "結構化知識圖譜建構"
+            ]
+          };
+          break;
+      }
+      
+      setStepResults(prev => ({
+        ...prev,
+        [stepNumber]: result
+      }));
+      
+    } catch (error) {
+      setStepResults(prev => ({
+        ...prev,
+        [stepNumber]: { error: String(error) }
+      }));
+    }
   };
 
   const apiEndpoints = [
@@ -66,8 +159,8 @@ export default function Dashboard() {
       {/* 標題區域 */}
       <div className="bg-gray-50 border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-3xl font-bold text-neutral mb-2">平台儀表板</h1>
-          <p className="text-gray-600">查看區塊鏈內容平台的即時統計數據</p>
+          <h1 className="text-3xl font-bold text-neutral mb-2">關於區塊勢 for AI</h1>
+          <p className="text-gray-600">了解我們如何同時為人類和 AI 代理提供內容服務</p>
         </div>
       </div>
 
@@ -267,53 +360,127 @@ export default function Dashboard() {
             <CardContent>
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 text-sm font-bold">1</span>
-                  </div>
+                  <Button
+                    variant={activeStep === 1 ? "default" : "outline"}
+                    size="sm"
+                    className="w-8 h-8 rounded-full p-0"
+                    onClick={() => handleStepClick(1)}
+                  >
+                    <span className="text-sm font-bold">1</span>
+                  </Button>
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900 mb-2">內容發現</h4>
-                    <div className="bg-gray-100 p-3 rounded-lg">
+                    <div className="bg-gray-100 p-3 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
+                         onClick={() => handleStepClick(1)}>
                       <code className="text-sm">GET /api/ai/discover</code>
-                      <p className="text-xs text-gray-600 mt-1">AI 代理獲取可用內容清單和價格資訊</p>
+                      <p className="text-xs text-gray-600 mt-1">點擊查看 AI 代理如何獲取內容清單</p>
                     </div>
+                    {stepResults[1] && (
+                      <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <h5 className="font-semibold text-blue-900 mb-2">API 回應：</h5>
+                        <pre className="text-xs text-blue-800 overflow-x-auto whitespace-pre-wrap">
+                          {JSON.stringify(stepResults[1], null, 2)}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <span className="text-yellow-600 text-sm font-bold">2</span>
-                  </div>
+                  <Button
+                    variant={activeStep === 2 ? "default" : "outline"}
+                    size="sm"
+                    className="w-8 h-8 rounded-full p-0"
+                    onClick={() => handleStepClick(2)}
+                  >
+                    <span className="text-sm font-bold">2</span>
+                  </Button>
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900 mb-2">嘗試訪問內容</h4>
-                    <div className="bg-gray-100 p-3 rounded-lg">
+                    <div className="bg-gray-100 p-3 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
+                         onClick={() => handleStepClick(2)}>
                       <code className="text-sm">GET /api/articles/1</code>
-                      <p className="text-xs text-gray-600 mt-1">收到 HTTP 402 回應和付款要求</p>
+                      <p className="text-xs text-gray-600 mt-1">點擊查看 HTTP 402 回應和付款要求</p>
                     </div>
+                    {stepResults[2] && (
+                      <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <h5 className="font-semibold text-yellow-900 mb-2">HTTP 402 回應：</h5>
+                        <div className="text-xs text-yellow-800">
+                          <div className="font-bold">狀態：{stepResults[2].status} {stepResults[2].statusText}</div>
+                          <div className="mt-2 font-semibold">x402 標頭：</div>
+                          <pre className="overflow-x-auto whitespace-pre-wrap">
+                            {JSON.stringify(stepResults[2].headers, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <span className="text-purple-600 text-sm font-bold">3</span>
-                  </div>
+                  <Button
+                    variant={activeStep === 3 ? "default" : "outline"}
+                    size="sm"
+                    className="w-8 h-8 rounded-full p-0"
+                    onClick={() => handleStepClick(3)}
+                  >
+                    <span className="text-sm font-bold">3</span>
+                  </Button>
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900 mb-2">自動化購買</h4>
-                    <div className="bg-gray-100 p-3 rounded-lg">
+                    <div className="bg-gray-100 p-3 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
+                         onClick={() => handleStepClick(3)}>
                       <code className="text-sm">POST /api/ai/purchase</code>
-                      <p className="text-xs text-gray-600 mt-1">AI 代理自動完成購買並獲得內容</p>
+                      <p className="text-xs text-gray-600 mt-1">點擊查看 AI 代理如何自動完成購買</p>
                     </div>
+                    {stepResults[3] && (
+                      <div className="mt-3 bg-purple-50 border border-purple-200 rounded-lg p-3">
+                        <h5 className="font-semibold text-purple-900 mb-2">購買成功回應：</h5>
+                        <pre className="text-xs text-purple-800 overflow-x-auto whitespace-pre-wrap">
+                          {JSON.stringify(stepResults[3], null, 2)}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-green-600 text-sm font-bold">4</span>
-                  </div>
+                  <Button
+                    variant={activeStep === 4 ? "default" : "outline"}
+                    size="sm"
+                    className="w-8 h-8 rounded-full p-0"
+                    onClick={() => handleStepClick(4)}
+                  >
+                    <span className="text-sm font-bold">4</span>
+                  </Button>
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900 mb-2">內容處理</h4>
-                    <div className="bg-gray-100 p-3 rounded-lg">
-                      <p className="text-xs text-gray-600">AI 代理獲得結構化 JSON 內容，可立即進行分析、總結或整合</p>
+                    <div className="bg-gray-100 p-3 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
+                         onClick={() => handleStepClick(4)}>
+                      <p className="text-xs text-gray-600">點擊了解 AI 代理如何處理獲得的內容</p>
                     </div>
+                    {stepResults[4] && (
+                      <div className="mt-3 bg-green-50 border border-green-200 rounded-lg p-3">
+                        <h5 className="font-semibold text-green-900 mb-2">內容處理能力：</h5>
+                        <div className="text-xs text-green-800">
+                          <p className="mb-2">{stepResults[4].message}</p>
+                          <div className="mb-3">
+                            <strong>數據結構：</strong>
+                            <pre className="mt-1 overflow-x-auto whitespace-pre-wrap">
+                              {JSON.stringify(stepResults[4].structure, null, 2)}
+                            </pre>
+                          </div>
+                          <div>
+                            <strong>AI 處理能力：</strong>
+                            <ul className="mt-1 ml-4 list-disc">
+                              {stepResults[4].capabilities.map((capability, index) => (
+                                <li key={index}>{capability}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
