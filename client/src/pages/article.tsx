@@ -58,12 +58,8 @@ export default function Article() {
       return;
     }
     
-    // Check if we need authentication:
-    // 1. Wallet is connected but not authenticated
-    if (wallet.isConnected && !isAuthenticated && !authLoading) {
-      console.log('Triggering authentication...');
-      setNeedsAuth(true);
-    }
+    // Only trigger authentication if we get a 401/402 error when fetching article
+    // Don't pre-emptively require authentication
   }, [wallet.isConnected, wallet.address, isAuthenticated, authLoading, authAddress]);
 
   // Reset auth state when authentication completes
@@ -83,7 +79,18 @@ export default function Article() {
       
       if (response.status === 402) {
         const errorData = await response.json();
-        throw new Error(`Payment required: ${errorData.message}`);
+        // Only trigger auth if wallet is connected but we haven't tried auth yet
+        if (wallet.isConnected && !needsAuth) {
+          console.log('Got 402, setting needsAuth to true');
+          setNeedsAuth(true);
+        }
+        return errorData; // Return 402 data instead of throwing
+      }
+      
+      // If we successfully got the article, clear any auth requirements
+      if (response.status === 200 && needsAuth) {
+        console.log('Successfully got article, clearing needsAuth');
+        setNeedsAuth(false);
       }
       
       if (!response.ok) {
