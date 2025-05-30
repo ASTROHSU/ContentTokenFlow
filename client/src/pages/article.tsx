@@ -4,7 +4,7 @@ import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useWalletConnect } from '@/components/walletconnect-provider';
+import { useReownWallet } from '@/components/wallet-provider-reown';
 import { formatUSDC } from '@/lib/web3';
 import { ArrowLeft, Lock, Calendar, User } from 'lucide-react';
 import { useState } from 'react';
@@ -27,7 +27,7 @@ interface ArticleData {
 export default function Article() {
   const params = useParams();
   const [, setLocation] = useLocation();
-  const { wallet } = useWalletConnect();
+  const { wallet } = useReownWallet();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   
   const articleId = params.id ? parseInt(params.id) : null;
