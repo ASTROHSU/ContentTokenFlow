@@ -94,3 +94,52 @@ declare global {
 export function isMetaMaskInstalled(): boolean {
   return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
 }
+
+// Check if user has paid for article by querying blockchain
+export async function checkUSDCPayment(
+  userAddress: string,
+  recipientAddress: string,
+  minimumAmount: string
+): Promise<boolean> {
+  try {
+    const amountInWei = parseUnits(minimumAmount, 6);
+    
+    // Query Base Sepolia RPC for USDC transfer events
+    const response = await fetch(`https://sepolia.base.org`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_getLogs',
+        params: [{
+          fromBlock: '0x0',
+          toBlock: 'latest',
+          address: USDC_CONTRACT_ADDRESS,
+          topics: [
+            '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer event signature
+            '0x' + userAddress.slice(2).padStart(64, '0'), // from address
+            '0x' + recipientAddress.slice(2).padStart(64, '0'), // to address
+          ]
+        }],
+        id: 1
+      })
+    });
+
+    const data = await response.json();
+    
+    if (data.result && data.result.length > 0) {
+      // Check if any transfer amount is >= minimum required
+      for (const log of data.result) {
+        const transferAmount = BigInt(log.data);
+        if (transferAmount >= amountInWei) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error checking USDC payment:', error);
+    return false;
+  }
+}

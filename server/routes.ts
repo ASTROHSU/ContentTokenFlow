@@ -96,17 +96,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Article not found" });
       }
 
-      // Check if user has access to the article
-      const hasAccess = walletAddress ? await storage.checkArticleAccess(id, walletAddress) : false;
-      
-      // Return article with access info
+      // Return article with wallet address for client-side blockchain verification
       res.json({
         ...article,
-        hasAccess,
-        content: hasAccess ? article.content : null,
+        hasAccess: false, // Will be checked on client-side via blockchain
+        content: null, // Will be revealed after blockchain verification
+        walletAddress: walletAddress || null,
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch article" });
+    }
+  });
+
+  // Get article content after blockchain verification
+  app.post("/api/articles/:id/unlock", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { walletAddress, verificationResult } = req.body;
+      
+      if (!verificationResult) {
+        return res.status(403).json({ message: "Blockchain verification required" });
+      }
+
+      const article = await storage.getArticle(id);
+      if (!article) {
+        return res.status(404).json({ message: "Article not found" });
+      }
+
+      // Return full article content
+      res.json({
+        ...article,
+        hasAccess: true,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to unlock article" });
     }
   });
 

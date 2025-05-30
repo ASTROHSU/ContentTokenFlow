@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useReownWallet } from '@/components/wallet-provider-reown';
-import { formatUSDC } from '@/lib/web3';
+import { formatUSDC, checkUSDCPayment } from '@/lib/web3';
 import { ArrowLeft, Lock, Calendar, User } from 'lucide-react';
 import { useState } from 'react';
 import { PaymentModal } from '@/components/payment-modal';

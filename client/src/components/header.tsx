@@ -1,8 +1,10 @@
 import { Box } from 'lucide-react';
 import { Link } from 'wouter';
 import { WalletSelector } from './wallet-selector';
+import { useAuth } from '@/hooks/use-auth';
 
 export function Header() {
+  const { isAuthenticated } = useAuth();
 
   return (
     <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
@@ -27,9 +29,11 @@ export function Header() {
             <Link href="/dashboard" className="text-gray-600 hover:text-neutral transition-colors">
               儀表板
             </Link>
-            <Link href="/creator" className="text-gray-600 hover:text-neutral transition-colors">
-              創作者
-            </Link>
+            {isAuthenticated && (
+              <Link href="/creator" className="text-gray-600 hover:text-neutral transition-colors">
+                創作者
+              </Link>
+            )}
           </nav>
 
           <div className="flex items-center space-x-4">
