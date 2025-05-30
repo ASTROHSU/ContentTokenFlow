@@ -51,6 +51,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/auth/status", (req, res) => {
+    // Clear authentication if wallet address in query doesn't match session
+    const walletAddress = req.query.wallet as string;
+    
+    if (walletAddress && req.session.address && 
+        walletAddress.toLowerCase() !== req.session.address.toLowerCase()) {
+      req.session.authenticated = false;
+      req.session.address = undefined;
+    }
+    
     res.json({ 
       authenticated: !!req.session.authenticated,
       address: req.session.address 

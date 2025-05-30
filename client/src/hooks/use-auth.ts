@@ -15,7 +15,14 @@ export function useAuth() {
   const queryClient = useQueryClient();
 
   const { data: authStatus, isLoading } = useQuery<AuthStatus>({
-    queryKey: ['/api/auth/status'],
+    queryKey: ['/api/auth/status', wallet.address],
+    queryFn: async () => {
+      const params = wallet.address ? `?wallet=${wallet.address}` : '';
+      const response = await fetch(`/api/auth/status${params}`, {
+        credentials: 'include',
+      });
+      return response.json();
+    },
     enabled: true,
   });
 

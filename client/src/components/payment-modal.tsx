@@ -87,6 +87,8 @@ export function PaymentModal({ article, isOpen, onClose }: PaymentModalProps) {
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
       queryClient.invalidateQueries({ queryKey: ['/api/agent-activity'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/payments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/articles'] });
       
       toast({
         title: "Payment Successful!",

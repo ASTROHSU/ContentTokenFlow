@@ -1,5 +1,5 @@
 import { useParams, useLocation } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +30,7 @@ export default function Article() {
   const [, setLocation] = useLocation();
   const { wallet } = useReownWallet();
   const { isAuthenticated, isLoading: authLoading, login, isLoggingIn, address: authAddress } = useAuth();
+  const queryClient = useQueryClient();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [unlockedArticle, setUnlockedArticle] = useState<ArticleData | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
@@ -47,15 +48,19 @@ export default function Article() {
       authAddress: authAddress
     });
     
-    // Check if we need authentication:
-    // 1. Wallet is connected but not authenticated, OR
-    // 2. Wallet is connected and authenticated but addresses don't match
-    const needsNewAuth = wallet.isConnected && (
-      !isAuthenticated || 
-      (isAuthenticated && authAddress?.toLowerCase() !== wallet.address?.toLowerCase())
-    );
+    // Force authentication if wallet address doesn't match authenticated address
+    if (wallet.isConnected && isAuthenticated && authAddress && 
+        authAddress.toLowerCase() !== wallet.address?.toLowerCase()) {
+      console.log('Address mismatch, forcing re-authentication...');
+      // Clear authentication state and force new auth
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] });
+      setNeedsAuth(true);
+      return;
+    }
     
-    if (needsNewAuth && !authLoading) {
+    // Check if we need authentication:
+    // 1. Wallet is connected but not authenticated
+    if (wallet.isConnected && !isAuthenticated && !authLoading) {
       console.log('Triggering authentication...');
       setNeedsAuth(true);
     }
