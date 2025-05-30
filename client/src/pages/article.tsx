@@ -79,12 +79,8 @@ export default function Article() {
       
       if (response.status === 402) {
         const errorData = await response.json();
-        // Only trigger auth if wallet is connected but we haven't tried auth yet
-        if (wallet.isConnected && !needsAuth) {
-          console.log('Got 402, setting needsAuth to true');
-          setNeedsAuth(true);
-        }
-        return errorData; // Return 402 data instead of throwing
+        // Don't trigger SIWE auth for 402 - just show payment option
+        return errorData; // Return 402 data to show payment interface
       }
       
       // If we successfully got the article, clear any auth requirements
@@ -164,41 +160,8 @@ export default function Article() {
     setUnlockedArticle(fullArticle);
   }
 
-  // Show authentication prompt if wallet is connected but not authenticated
-  if (wallet.isConnected && needsAuth && !isAuthenticated && !authLoading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <Header />
-        <div className="flex items-center justify-center min-h-[600px]">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Shield className="w-6 h-6 text-primary" />
-              </div>
-              <CardTitle className="text-2xl">驗證身份</CardTitle>
-              <p className="text-gray-600">
-                為了訪問付費內容，請先使用錢包簽名驗證你的身份。
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-4">
-                  錢包: {wallet.address?.slice(0, 6)}...{wallet.address?.slice(-4)}
-                </p>
-                <Button 
-                  onClick={() => login()} 
-                  disabled={isLoggingIn}
-                  className="w-full"
-                >
-                  {isLoggingIn ? '驗證中...' : '簽名驗證'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  // Skip SIWE authentication for now - payment verification is sufficient
+  // Will handle access control through payment verification only
 
   if (isLoading || authLoading) {
     return (
