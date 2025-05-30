@@ -49,10 +49,11 @@ export function useAuth() {
 
       const messageString = message.prepareMessage();
 
-      // Request signature from wallet using original address format
-      const signature = await (window.ethereum as any).request({
-        method: 'personal_sign',
-        params: [messageString, wallet.address],
+      // Request signature through WalletConnect
+      const { signMessage } = await import('@wagmi/core');
+      
+      const signature = await signMessage({
+        message: messageString,
       });
 
       // Verify with backend
