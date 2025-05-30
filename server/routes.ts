@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPaymentSchema, insertAgentActivitySchema, insertArticleSchema } from "@shared/schema";
 import { z } from "zod";
+import { SiweMessage } from "siwe";
 
 const connectWalletSchema = z.object({
   walletAddress: z.string(),
@@ -16,7 +17,48 @@ const processPaymentSchema = insertPaymentSchema.extend({
   paymentType: z.enum(["wallet", "ai_agent"]),
 });
 
+const siweVerifySchema = z.object({
+  message: z.string(),
+  signature: z.string(),
+});
+
+// Authorized creator address
+const CREATOR_ADDRESS = "0x36F322fC85B24aB13263CFE9217B28f8E2b38381";
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // SIWE Authentication
+  app.post("/api/auth/verify", async (req, res) => {
+    try {
+      const { message, signature } = siweVerifySchema.parse(req.body);
+      
+      const siweMessage = new SiweMessage(message);
+      const fields = await siweMessage.verify({ signature });
+      
+      if (fields.data.address.toLowerCase() === CREATOR_ADDRESS.toLowerCase()) {
+        req.session.authenticated = true;
+        req.session.address = fields.data.address;
+        res.json({ success: true, address: fields.data.address });
+      } else {
+        res.status(403).json({ message: "Unauthorized address" });
+      }
+    } catch (error) {
+      res.status(400).json({ message: "Invalid signature" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.authenticated = false;
+    req.session.address = undefined;
+    res.json({ success: true });
+  });
+
+  app.get("/api/auth/status", (req, res) => {
+    res.json({ 
+      authenticated: !!req.session.authenticated,
+      address: req.session.address 
+    });
+  });
+
   // Get all articles
   app.get("/api/articles", async (req, res) => {
     try {
@@ -27,8 +69,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create new article
+  // Create new article (requires authentication)
   app.post("/api/articles", async (req, res) => {
+    if (!req.session.authenticated) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
     try {
       const articleData = insertArticleSchema.parse(req.body);
       const article = await storage.createArticle(articleData);
