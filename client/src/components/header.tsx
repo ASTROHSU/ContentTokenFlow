@@ -33,6 +33,9 @@ export function Header() {
             <Link href="/dashboard" className="text-gray-600 hover:text-neutral transition-colors">
               儀表板
             </Link>
+            <Link href="/x402" className="text-gray-600 hover:text-neutral transition-colors">
+              x402 狀態
+            </Link>
             {isCreator && (
               <Link href="/creator" className="text-gray-600 hover:text-neutral transition-colors">
                 創作者
