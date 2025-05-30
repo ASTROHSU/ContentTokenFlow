@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { useWalletConnect } from './walletconnect-provider';
+import { useReownWallet } from './wallet-provider-reown';
 import { formatAddress, formatUSDC } from '@/lib/web3';
 import { Wallet, Coins, ChevronDown, Gift } from 'lucide-react';
 
 export function WalletSelector() {
   const [showWalletModal, setShowWalletModal] = useState(false);
-  const { wallet, connectWalletConnect, disconnectWallet } = useWalletConnect();
+  const { wallet, connectWallet, disconnectWallet } = useReownWallet();
 
   const handleFaucetUSDC = () => {
     window.open('https://faucet.circle.com/', '_blank');
@@ -119,7 +119,7 @@ export function WalletSelector() {
       </Button>
 
       <Button
-        onClick={() => setShowWalletModal(true)}
+        onClick={connectWallet}
         disabled={wallet.isConnecting}
         className="bg-primary text-white hover:bg-indigo-700 flex items-center space-x-2"
       >
@@ -128,43 +128,6 @@ export function WalletSelector() {
           {wallet.isConnecting ? '連接中...' : '連接錢包'}
         </span>
       </Button>
-
-      <Dialog open={showWalletModal} onOpenChange={setShowWalletModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>選擇錢包</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <Card 
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => {
-                connectWalletConnect();
-                setShowWalletModal(false);
-              }}
-            >
-              <CardContent className="p-4 flex items-center space-x-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Wallet className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="font-medium">WalletConnect</h3>
-                  <p className="text-sm text-gray-600">連接手機錢包或其他錢包</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800 mb-2">
-                <strong>支援網路:</strong> Base Sepolia 測試網
-              </p>
-              <p className="text-xs text-blue-600">
-                請確保你的錢包已連接至 Base Sepolia 測試網路
-              </p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
