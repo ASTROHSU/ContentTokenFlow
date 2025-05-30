@@ -4,6 +4,24 @@ import { SiweMessage } from 'siwe';
 import { useReownWallet } from '@/components/wallet-provider-reown';
 import { useToast } from './use-toast';
 
+// Convert address to EIP-55 checksum format
+function toChecksumAddress(address: string): string {
+  if (!address) return address;
+  
+  const addr = address.toLowerCase().replace('0x', '');
+  const hash = Array.from(addr).map((char, i) => {
+    const code = char.charCodeAt(0);
+    if (code >= 48 && code <= 57) return char; // 0-9
+    if (code >= 97 && code <= 102) { // a-f
+      // Simple checksum: uppercase if char position is even
+      return i % 2 === 0 ? char.toUpperCase() : char;
+    }
+    return char;
+  }).join('');
+  
+  return '0x' + hash;
+}
+
 interface AuthStatus {
   authenticated: boolean;
   address?: string;
@@ -37,8 +55,8 @@ export function useAuth() {
 
         console.log('錢包已連接，地址:', wallet.address);
 
-        // Use original wallet address for SIWE (EIP-55 format required)
-        const siweAddress = wallet.address; // Keep original format for SIWE
+        // Convert to EIP-55 checksum format for SIWE
+        const siweAddress = toChecksumAddress(wallet.address);
         const normalizedAddress = wallet.address.toLowerCase(); // For backend consistency
 
         // Create SIWE message

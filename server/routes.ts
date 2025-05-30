@@ -122,11 +122,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isCreator = walletAddress?.toLowerCase() === '0x36F322fC85B24aB13263CFE9217B28f8E2b38381'.toLowerCase();
       let hasAccess = isCreator;
       
-      // For non-creators, verify payment with blockchain (skip authentication requirement)
+      // For non-creators, check payment directly without requiring authentication
       if (!isCreator && walletAddress) {
         const normalizedWallet = walletAddress.toLowerCase();
         
-        hasAccess = await blockchainVerifier.checkArticleAccessWithBlockchain(storage, id, normalizedWallet);
+        // First check database for existing payments
+        console.log(`Checking payments for wallet: ${normalizedWallet}`);
+        const userPayments = await storage.getPaymentsByWallet(normalizedWallet);
+        console.log(`Found ${userPayments.length} payments:`, userPayments.map(p => ({
+          id: p.id,
+          articleId: p.articleId,
+          walletAddress: p.walletAddress,
+          status: p.status,
+          amount: p.amount
+        })));
+        
+        hasAccess = userPayments.some(payment => {
+          const matches = payment.articleId === id && 
+            (payment.status === 'completed' || payment.status === 'success');
+          console.log(`Payment ${payment.id}: articleId=${payment.articleId} vs ${id}, status=${payment.status}, matches=${matches}`);
+          return matches;
+        });
+        
+        // If no database record, check blockchain
+        if (!hasAccess) {
+          hasAccess = await blockchainVerifier.checkArticleAccessWithBlockchain(storage, id, normalizedWallet);
+        }
       }
       
       if (!hasAccess) {
