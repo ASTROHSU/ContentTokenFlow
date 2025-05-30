@@ -33,9 +33,7 @@ export function Header() {
             <Link href="/dashboard" className="text-gray-600 hover:text-neutral transition-colors">
               儀表板
             </Link>
-            <Link href="/x402" className="text-gray-600 hover:text-neutral transition-colors">
-              x402 狀態
-            </Link>
+
             {isCreator && (
               <Link href="/creator" className="text-gray-600 hover:text-neutral transition-colors">
                 創作者
@@ -44,10 +42,6 @@ export function Header() {
           </nav>
 
           <div className="flex items-center space-x-4">
-            <div className="hidden md:flex items-center space-x-2 text-sm text-gray-600 bg-green-50 px-3 py-1 rounded-full border">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>x402 協議已啟用</span>
-            </div>
             <WalletSelector />
           </div>
         </div>
