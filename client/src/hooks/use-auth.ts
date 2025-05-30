@@ -28,54 +28,74 @@ export function useAuth() {
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      if (!wallet.isConnected || !wallet.address) {
-        throw new Error('請先連接錢包');
+      try {
+        console.log('開始 SIWE 登入流程...');
+        
+        if (!wallet.isConnected || !wallet.address) {
+          throw new Error('請先連接錢包');
+        }
+
+        console.log('錢包已連接，地址:', wallet.address);
+
+        // Normalize address to lowercase for consistency
+        const normalizedAddress = wallet.address.toLowerCase();
+
+        // Create SIWE message
+        console.log('創建 SIWE 訊息...');
+        const message = new SiweMessage({
+          domain: window.location.host,
+          address: normalizedAddress,
+          statement: 'Sign in to access premium content',
+          uri: window.location.origin,
+          version: '1',
+          chainId: 84532, // Base Sepolia
+          nonce: Math.random().toString(36).substring(2, 15),
+          issuedAt: new Date().toISOString(),
+        });
+
+        const messageString = message.prepareMessage();
+        console.log('SIWE 訊息已創建:', messageString);
+
+        // Request signature using WalletConnect provider
+        if (!(window as any).ethereum) {
+          throw new Error('請確保錢包已連接 - 找不到 ethereum 提供者');
+        }
+
+        console.log('請求錢包簽名...');
+        const signature = await (window as any).ethereum.request({
+          method: 'personal_sign',
+          params: [messageString, normalizedAddress],
+        });
+
+        console.log('簽名完成:', signature);
+
+        // Verify with backend
+        console.log('發送驗證請求到後端...');
+        const response = await fetch('/api/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: messageString,
+            signature,
+          }),
+          credentials: 'include',
+        });
+
+        console.log('後端響應狀態:', response.status);
+
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('後端驗證失敗:', error);
+          throw new Error(error.message || '認證失敗');
+        }
+
+        const result = await response.json();
+        console.log('驗證成功:', result);
+        return result;
+      } catch (error) {
+        console.error('SIWE 登入過程中發生錯誤:', error);
+        throw error;
       }
-
-      // Normalize address to lowercase for consistency
-      const normalizedAddress = wallet.address.toLowerCase();
-
-      // Create SIWE message
-      const message = new SiweMessage({
-        domain: window.location.host,
-        address: normalizedAddress,
-        statement: 'Sign in to access premium content',
-        uri: window.location.origin,
-        version: '1',
-        chainId: 84532, // Base Sepolia
-        nonce: Math.random().toString(36).substring(2, 15),
-        issuedAt: new Date().toISOString(),
-      });
-
-      const messageString = message.prepareMessage();
-
-      // Request signature using WalletConnect provider
-      if (!(window as any).ethereum) {
-        throw new Error('請確保錢包已連接');
-      }
-
-      const signature = await (window as any).ethereum.request({
-        method: 'personal_sign',
-        params: [messageString, normalizedAddress],
-      });
-
-      // Verify with backend
-      const response = await fetch('/api/auth/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: messageString,
-          signature,
-        }),
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || '認證失敗');
-      }
-
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] });
