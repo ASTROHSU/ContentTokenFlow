@@ -223,21 +223,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const articleId = parseInt(req.query.articleId as string);
       const walletAddress = req.query.walletAddress as string;
       
+      console.log(`Payment check request: articleId=${articleId}, walletAddress=${walletAddress}`);
+      
       if (!articleId || !walletAddress) {
+        console.log(`Missing parameters: articleId=${!!articleId}, walletAddress=${!!walletAddress}`);
         return res.status(400).json({ message: "Missing required parameters" });
       }
 
       // Check if user has any successful payment for this article
       const userPayments = await storage.getPaymentsByWallet(walletAddress);
+      console.log(`Found ${userPayments.length} payments for wallet ${walletAddress}`);
+      console.log('Payments:', userPayments.map(p => ({ id: p.id, articleId: p.articleId, status: p.status })));
+      
       const hasPayment = userPayments.some(payment => 
         payment.articleId === articleId && 
         (payment.status === 'completed' || payment.status === 'success')
       );
 
-      console.log(`Payment check for wallet ${walletAddress}, article ${articleId}: ${hasPayment}`);
+      console.log(`Payment check result for wallet ${walletAddress}, article ${articleId}: ${hasPayment}`);
       res.json({ hasAccess: hasPayment });
     } catch (error) {
-      res.status(500).json({ message: "Failed to check payment access" });
+      console.error('Payment check error:', error);
+      res.status(500).json({ message: "Failed to check payment access", error: error.message });
     }
   });
 

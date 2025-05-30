@@ -54,33 +54,32 @@ export default function Article() {
     enabled: !!articleId,
   });
 
-  // Check payment status (database first, then blockchain)
+  // Check payment status by getting user's payment history
   const { data: hasPaymentAccess, isLoading: isCheckingPayment } = useQuery({
     queryKey: ['/api/payment-access', articleId, wallet.address],
     queryFn: async () => {
       if (!wallet.address || !article) return false;
       
-      // First check database payments
+      // Check user's payment history directly
       try {
-        const response = await fetch(`/api/payments/check?articleId=${articleId}&walletAddress=${wallet.address}`);
+        const response = await fetch(`/api/payments/wallet/${wallet.address}`);
         if (response.ok) {
-          const data = await response.json();
-          if (data.hasAccess) {
-            console.log('Access granted via database payment record');
+          const payments = await response.json();
+          const hasPayment = payments.some(payment => 
+            payment.articleId === parseInt(articleId) && 
+            (payment.status === 'completed' || payment.status === 'success')
+          );
+          
+          if (hasPayment) {
+            console.log('Access granted via payment history');
             return true;
           }
         }
       } catch (error) {
-        console.log('Database check failed, trying blockchain verification');
+        console.log('Payment history check failed');
       }
       
-      // Fallback to blockchain verification
-      const recipientAddress = '0x36F322fC85B24aB13263CFE9217B28f8E2b38381';
-      const blockchainAccess = await checkUSDCPayment(wallet.address, recipientAddress, article.price);
-      if (blockchainAccess) {
-        console.log('Access granted via blockchain verification');
-      }
-      return blockchainAccess;
+      return false;
     },
     enabled: !!wallet.address && !!article && !unlockedArticle,
   });
