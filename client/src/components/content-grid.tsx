@@ -99,7 +99,10 @@ export function ContentGrid() {
                     </div>
                   </div>
                   
-                  <h3 className="text-xl font-bold text-neutral mb-2">
+                  <h3 
+                    className="text-xl font-bold text-neutral mb-2 cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => handleUnlock(article)}
+                  >
                     {article.title}
                   </h3>
                   

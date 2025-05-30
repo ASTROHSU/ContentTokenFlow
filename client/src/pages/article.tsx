@@ -219,8 +219,8 @@ export default function Article() {
             </p>
           </div>
 
-          {/* Show content if unlocked via blockchain verification */}
-          {unlockedArticle && unlockedArticle.content ? (
+          {/* Show content if unlocked via payment verification */}
+          {(unlockedArticle && unlockedArticle.content) || (hasPaymentAccess && fullArticle && fullArticle.content) ? (
             <Card>
               <CardContent className="p-8">
                 <div className="prose prose-lg max-w-none">
@@ -232,7 +232,7 @@ export default function Article() {
                       letterSpacing: '0.01em'
                     }}
                   >
-                    {unlockedArticle.content}
+                    {unlockedArticle?.content || fullArticle?.content}
                   </div>
                 </div>
               </CardContent>
