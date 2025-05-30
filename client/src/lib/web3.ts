@@ -1,4 +1,5 @@
-// Web3 utilities for blockchain interaction simulation
+// Web3 utilities for real blockchain interaction
+import { parseUnits, formatUnits } from 'viem';
 
 export interface PaymentResult {
   txHash: string;
@@ -7,24 +8,67 @@ export interface PaymentResult {
   gasFee: string;
 }
 
-export async function simulatePayment(
+// USDC contract address on Base Sepolia
+const USDC_CONTRACT_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+// Recipient address for payments
+const RECIPIENT_ADDRESS = '0x36F322fC85B24aB13263CFE9217B28f8E2b38381';
+
+// ERC-20 Transfer function signature
+const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
+
+export async function processUSDCPayment(
   amount: string,
-  recipient: string
+  senderAddress: string
 ): Promise<PaymentResult> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 1000));
-  
-  // Simulate occasional failures
-  if (Math.random() < 0.05) {
-    throw new Error('Transaction failed: Insufficient gas fee');
+  if (!window.ethereum) {
+    throw new Error('請安裝 MetaMask 或其他 Web3 錢包');
   }
-  
-  return {
-    txHash: '0x' + Math.random().toString(16).substr(2, 64),
-    status: 'success',
-    gasUsed: (21000 + Math.floor(Math.random() * 50000)).toString(),
-    gasFee: (Math.random() * 0.5 + 0.1).toFixed(4),
-  };
+
+  try {
+    // Convert amount to USDC decimals (6 decimals)
+    const amountInWei = parseUnits(amount, 6);
+    
+    // Encode transfer function call
+    const transferData = TRANSFER_FUNCTION_SIGNATURE + 
+      RECIPIENT_ADDRESS.slice(2).padStart(64, '0') + 
+      amountInWei.toString(16).padStart(64, '0');
+
+    // Send transaction
+    const txHash = await (window.ethereum as any).request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: senderAddress,
+        to: USDC_CONTRACT_ADDRESS,
+        data: transferData,
+        gas: '0x186A0', // 100,000 gas limit
+      }],
+    });
+
+    // Wait for transaction receipt
+    let receipt = null;
+    let attempts = 0;
+    while (!receipt && attempts < 30) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      receipt = await (window.ethereum as any).request({
+        method: 'eth_getTransactionReceipt',
+        params: [txHash],
+      });
+      attempts++;
+    }
+
+    if (!receipt) {
+      throw new Error('交易確認超時');
+    }
+
+    return {
+      txHash,
+      status: receipt.status === '0x1' ? 'success' : 'failed',
+      gasUsed: parseInt(receipt.gasUsed, 16).toString(),
+      gasFee: formatUnits(BigInt(receipt.gasUsed) * BigInt(receipt.effectiveGasPrice || '0'), 18),
+    };
+  } catch (error: any) {
+    throw new Error(`付款失敗: ${error.message}`);
+  }
 }
 
 export function formatAddress(address: string): string {
@@ -40,14 +84,10 @@ export function formatUSDC(amount: string | number): string {
   }).format(num);
 }
 
-// Declare global types for MetaMask
+// Declare global types for Web3 wallets
 declare global {
   interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: any[] }) => Promise<any>;
-      on: (event: string, callback: (...args: any[]) => void) => void;
-      removeListener: (event: string, callback: (...args: any[]) => void) => void;
-    };
+    ethereum?: any;
   }
 }
 

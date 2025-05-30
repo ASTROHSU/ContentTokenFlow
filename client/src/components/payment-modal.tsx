@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useReownWallet } from './wallet-provider-reown';
-import { formatUSDC, simulatePayment } from '@/lib/web3';
+import { formatUSDC, processUSDCPayment } from '@/lib/web3';
 import { Lock, Wallet, Bot, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
@@ -36,12 +36,24 @@ export function PaymentModal({ article, isOpen, onClose }: PaymentModalProps) {
 
   const paymentMutation = useMutation({
     mutationFn: async (paymentType: 'wallet' | 'ai_agent') => {
-      if (paymentType === 'wallet' && !wallet.isConnected) {
-        throw new Error('Wallet not connected');
+      let result: PaymentResult;
+      
+      if (paymentType === 'wallet') {
+        if (!wallet.isConnected) {
+          throw new Error('Wallet not connected');
+        }
+        // Process real USDC payment on blockchain
+        result = await processUSDCPayment(article.price, wallet.address!);
+      } else {
+        // For AI agent payments, simulate the transaction
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        result = {
+          txHash: '0x' + Math.random().toString(16).substr(2, 64),
+          status: 'success',
+          gasUsed: '21000',
+          gasFee: '0.001',
+        };
       }
-
-      // Simulate blockchain payment
-      const result = await simulatePayment(article.price, 'recipient_address');
       
       // Send payment to backend
       const response = await fetch('/api/payments', {
