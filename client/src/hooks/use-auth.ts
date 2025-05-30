@@ -32,10 +32,13 @@ export function useAuth() {
         throw new Error('請先連接錢包');
       }
 
+      // Normalize address to lowercase for consistency
+      const normalizedAddress = wallet.address.toLowerCase();
+
       // Create SIWE message
       const message = new SiweMessage({
         domain: window.location.host,
-        address: wallet.address,
+        address: normalizedAddress,
         statement: 'Sign in to access premium content',
         uri: window.location.origin,
         version: '1',
@@ -46,7 +49,7 @@ export function useAuth() {
 
       const messageString = message.prepareMessage();
 
-      // Request signature from wallet
+      // Request signature from wallet using original address format
       const signature = await (window.ethereum as any).request({
         method: 'personal_sign',
         params: [messageString, wallet.address],
