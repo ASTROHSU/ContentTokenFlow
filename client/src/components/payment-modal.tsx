@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useWalletConnect } from './walletconnect-provider';
+import { useReownWallet } from './wallet-provider-reown';
 import { formatUSDC, simulatePayment } from '@/lib/web3';
 import { Lock, Wallet, Bot, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -29,7 +29,7 @@ interface PaymentResult {
 export function PaymentModal({ article, isOpen, onClose }: PaymentModalProps) {
   const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const { wallet } = useWalletConnect();
+  const { wallet } = useReownWallet();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
