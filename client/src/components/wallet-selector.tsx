@@ -15,7 +15,7 @@ export function WalletSelector() {
   };
 
   const handleFaucetETH = () => {
-    window.open('https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet', '_blank');
+    window.open('https://console.optimism.io/faucet', '_blank');
   };
 
   if (wallet.isConnected) {
